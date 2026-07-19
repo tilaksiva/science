@@ -120,7 +120,7 @@ lessons.forEach(l=>{
     <div>${l.desc}</div>
     <div class="status">${exists?"✅ Completed":"📖 Ready to Learn"}</div>
     <button ${l.file==="photosynthesis.html"||l.file==="electricity.html"?"":"disabled"} onclick="location.href='${l.file}'">
-      ${l.file==="photosynthesis.html"||l.file==="electricity.html"||l.file==="water-cycle.html":"Coming Soon"}
+      ${l.file==="photosynthesis.html"||l.file==="electricity.html"?"Start Adventure":"Coming Soon"}
     </button>
   `;
   grid.appendChild(card);
