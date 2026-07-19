@@ -1,0 +1,3257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sprouty's Green Kitchen: The Photosynthesis Adventure!</title>
+    
+    <!-- Google Fonts for Cartoon & Premium Kid-Friendly Aesthetics -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300..700&family=Outfit:wght@300..900&display=swap" rel="stylesheet">
+    
+    <style>
+        /* CSS Variables - Premium Cartoon Palette */
+        :root {
+            --bg-sky-day: linear-gradient(180deg, #b3e5fc 0%, #e1f5fe 100%);
+            --bg-sky-night: linear-gradient(180deg, #0d47a1 0%, #1565c0 100%);
+            --leaf-green: #4caf50;
+            --leaf-green-light: #81c784;
+            --leaf-green-dark: #2e7d32;
+            --sun-yellow: #ffd54f;
+            --sun-orange: #ffb300;
+            --water-blue: #29b6f6;
+            --co2-grey: #90a4ae;
+            --glucose-gold: #ffca28;
+            --oxygen-light: #e0f7fa;
+            --bubble-blue: #00e5ff;
+            --clay-brown: #8d6e63;
+            --text-dark: #37474f;
+            --text-light: #ffffff;
+            --card-bg: rgba(255, 255, 255, 0.9);
+            --card-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
+            --border-radius: 24px;
+            --font-main: 'Outfit', sans-serif;
+            --font-title: 'Fredoka', sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        .food-item *, .shelf-item *, .fallback-item *, .eq-drag-item * {
+            pointer-events: none;
+        }
+
+        body {
+            font-family: var(--font-main);
+            color: var(--text-dark);
+            background: var(--bg-sky-day);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Particle Overlay */
+        #particle-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Interactive Confetti / Fireworks Canvas */
+        #celebration-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        /* Start / Welcome Overlay Screen */
+        #start-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #a5d6a7 0%, #4caf50 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            color: var(--text-light);
+            text-align: center;
+            padding: 20px;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+
+        #start-overlay h1 {
+            font-family: var(--font-title);
+            font-size: 3rem;
+            margin-bottom: 20px;
+            text-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+            animation: bounce 2s infinite ease-in-out;
+        }
+
+        #start-overlay p {
+            font-size: 1.3rem;
+            margin-bottom: 40px;
+            max-width: 600px;
+            line-height: 1.6;
+        }
+
+        /* Large Action Buttons */
+        .btn-large {
+            font-family: var(--font-title);
+            font-size: 1.5rem;
+            padding: 18px 40px;
+            border: none;
+            border-radius: 50px;
+            background: var(--sun-orange);
+            color: var(--text-dark);
+            cursor: pointer;
+            box-shadow: 0 8px 0 #d84315, 0 12px 24px rgba(0, 0, 0, 0.15);
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            outline: none;
+        }
+
+        .btn-large:hover {
+            transform: scale(1.05) translateY(-2px);
+            background: #ffc107;
+        }
+
+        .btn-large:active {
+            transform: scale(0.98) translateY(4px);
+            box-shadow: 0 2px 0 #d84315, 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Sound Control Buttons */
+        #audio-controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 12px;
+            z-index: 100;
+        }
+
+        .icon-btn {
+            background: var(--card-bg);
+            border: 2px solid rgba(0,0,0,0.05);
+            border-radius: 50%;
+            width: 48px;
+            height: 48px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            transition: all 0.2s;
+        }
+
+        .icon-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+        }
+
+        .icon-btn svg {
+            width: 24px;
+            height: 24px;
+            fill: var(--text-dark);
+        }
+
+        /* Main Game Layout */
+        #main-container {
+            width: 100%;
+            max-width: 1024px;
+            padding: 20px;
+            z-index: 5;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            flex-grow: 1;
+        }
+
+        /* Top Progress Bar & Header */
+        header {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            background: var(--card-bg);
+            padding: 15px 25px;
+            border-radius: 50px;
+            box-shadow: var(--card-shadow);
+        }
+
+        .stars-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: var(--font-title);
+            font-size: 1.3rem;
+            background: #fff9c4;
+            padding: 6px 18px;
+            border-radius: 30px;
+            color: #f57f17;
+            font-weight: bold;
+        }
+
+        .stars-container svg {
+            width: 28px;
+            height: 28px;
+            fill: #fbc02d;
+            animation: spin 8s infinite linear;
+        }
+
+        .progress-bar-outer {
+            flex-grow: 1;
+            height: 16px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            margin: 0 30px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-bar-inner {
+            height: 100%;
+            width: 10%;
+            background: linear-gradient(90deg, var(--leaf-green-light), var(--leaf-green));
+            border-radius: 10px;
+            transition: width 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+
+        /* Sprouty's Chat / Narrator box */
+        #sprouty-box {
+            width: 100%;
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: var(--card-shadow);
+            padding: 20px;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            border: 3px solid var(--leaf-green-light);
+            position: relative;
+        }
+
+        .sprouty-avatar {
+            width: 110px;
+            height: 110px;
+            flex-shrink: 0;
+            background: #e8f5e9;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 3px solid var(--leaf-green);
+            overflow: hidden;
+        }
+
+        .sprouty-avatar svg {
+            width: 90px;
+            height: 90px;
+        }
+
+        .speech-bubble {
+            flex-grow: 1;
+            background: #f1f8e9;
+            border-radius: 20px;
+            padding: 15px 20px;
+            position: relative;
+            font-size: 1.15rem;
+            line-height: 1.5;
+            font-weight: 500;
+        }
+
+        .speech-bubble::before {
+            content: '';
+            position: absolute;
+            left: -15px;
+            top: 50%;
+            transform: translateY(-50%);
+            border-width: 10px 15px 10px 0;
+            border-style: solid;
+            border-color: transparent #f1f8e9 transparent transparent;
+        }
+
+        /* Stage Containers */
+        .stage {
+            display: none;
+            width: 100%;
+            flex-grow: 1;
+            flex-direction: column;
+            align-items: center;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .stage.active {
+            display: flex;
+        }
+
+        /* Stage 1: Curiosity Hook */
+        #stage-curiosity {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+            width: 100%;
+        }
+
+        .curiosity-board {
+            display: flex;
+            width: 100%;
+            gap: 30px;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .character-container {
+            width: 320px;
+            height: 320px;
+            background: var(--card-bg);
+            border-radius: 50%;
+            box-shadow: var(--card-shadow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            border: 4px solid #fff;
+        }
+
+        .sprouty-character-large {
+            width: 250px;
+            height: 250px;
+        }
+
+        .food-plate {
+            display: flex;
+            gap: 15px;
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--card-shadow);
+            flex-wrap: wrap;
+            justify-content: center;
+            max-width: 480px;
+        }
+
+        .food-item {
+            width: 90px;
+            height: 90px;
+            background: white;
+            border: 3px dashed var(--co2-grey);
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: grab;
+            transition: transform 0.2s, box-shadow 0.2s;
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: var(--text-dark);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            touch-action: none;
+        }
+
+        .food-item:hover {
+            transform: scale(1.08) rotate(3deg);
+            border-color: var(--sun-orange);
+            box-shadow: 0 8px 12px rgba(0,0,0,0.1);
+        }
+
+        .food-item svg {
+            width: 50px;
+            height: 50px;
+            margin-bottom: 4px;
+        }
+
+        /* Stage 2: Leaf Zoom Explorer */
+        #stage-zoom-explorer {
+            width: 100%;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 25px;
+        }
+
+        .zoom-view-container {
+            width: 100%;
+            max-width: 800px;
+            height: 400px;
+            background: #e8f5e9;
+            border-radius: var(--border-radius);
+            box-shadow: var(--card-shadow);
+            position: relative;
+            overflow: hidden;
+            border: 4px solid white;
+        }
+
+        .leaf-zoom-svg {
+            width: 100%;
+            height: 100%;
+            transition: transform 1.2s ease-in-out;
+        }
+
+        .macro-hotspot {
+            position: absolute;
+            background: rgba(255, 235, 59, 0.4);
+            border: 3px dashed var(--sun-orange);
+            border-radius: 50%;
+            cursor: pointer;
+            animation: pulse 1.5s infinite;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-dark);
+            font-weight: bold;
+            font-size: 0.9rem;
+            padding: 10px;
+        }
+
+        .macro-hotspot:hover {
+            background: rgba(255, 235, 59, 0.7);
+            transform: scale(1.1);
+        }
+
+        /* Stage 3: Interactive Ingredient Gathering */
+        #stage-gathering {
+            width: 100%;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 25px;
+        }
+
+        .tab-nav {
+            display: flex;
+            gap: 12px;
+            background: var(--card-bg);
+            padding: 8px;
+            border-radius: 40px;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 10px;
+            width: 100%;
+            max-width: 700px;
+            justify-content: space-around;
+        }
+
+        .tab-btn {
+            font-family: var(--font-title);
+            font-size: 1.1rem;
+            padding: 10px 24px;
+            border: none;
+            border-radius: 30px;
+            background: transparent;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-dark);
+            opacity: 0.6;
+        }
+
+        .tab-btn.active {
+            background: var(--leaf-green);
+            color: var(--text-light);
+            opacity: 1;
+            box-shadow: 0 4px 10px rgba(76, 175, 80, 0.3);
+        }
+
+        .tab-btn.completed {
+            opacity: 1;
+            background: #c8e6c9;
+            color: var(--leaf-green-dark);
+        }
+
+        .tab-content {
+            display: none;
+            width: 100%;
+            max-width: 750px;
+            height: 420px;
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: var(--card-shadow);
+            position: relative;
+            overflow: hidden;
+            border: 4px solid white;
+            padding: 20px;
+        }
+
+        .tab-content.active {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Root Water Puzzle Styles */
+        .roots-svg-container {
+            width: 100%;
+            height: 80%;
+            position: relative;
+        }
+
+        .roots-svg-container svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .water-drop-collectible {
+            position: absolute;
+            width: 44px;
+            height: 44px;
+            background: #bbdefb;
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(33, 150, 243, 0.2);
+            animation: float 2.5s infinite ease-in-out;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--water-blue);
+            transition: transform 0.2s;
+        }
+
+        .water-drop-collectible:hover {
+            transform: scale(1.15);
+        }
+
+        /* CO2 Air Catching Game */
+        .air-game-canvas {
+            width: 100%;
+            height: 80%;
+            background: #eceff1;
+            border-radius: 16px;
+            position: relative;
+            overflow: hidden;
+            border: 2px dashed #b0bec5;
+        }
+
+        .co2-molecule-bubble {
+            position: absolute;
+            width: 55px;
+            height: 55px;
+            background: #cfd8dc;
+            border-radius: 50%;
+            border: 3px solid #78909c;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            animation: float 3s infinite ease-in-out;
+            transition: transform 0.2s;
+        }
+
+        .co2-molecule-bubble:hover {
+            transform: scale(1.1);
+        }
+
+        /* Sunlight Charger Game */
+        .sunlight-charger-area {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            gap: 20px;
+        }
+
+        .sunlight-interactive-side {
+            flex: 1;
+            position: relative;
+            background: linear-gradient(180deg, #fff9c4 0%, #fff176 100%);
+            border-radius: 16px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sunlight-ray {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background: radial-gradient(circle, #fff 10%, #ffd54f 80%);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 15px #ffb300;
+            animation: pulse 1s infinite alternate;
+        }
+
+        .energy-meter-side {
+            width: 180px;
+            background: #f5f5f5;
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+        }
+
+        .energy-bar-outer {
+            width: 50px;
+            height: 220px;
+            background: #e0e0e0;
+            border-radius: 25px;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            flex-direction: column-reverse;
+        }
+
+        .energy-bar-inner {
+            width: 100%;
+            height: 0%;
+            background: linear-gradient(0deg, #ff8f00, #ffeb3b);
+            border-radius: 25px;
+            transition: height 0.3s;
+        }
+
+        .counter-badge {
+            font-family: var(--font-title);
+            background: #fff;
+            border: 2px solid var(--sun-orange);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            color: #e65100;
+        }
+
+        /* Stage 4: Cooking Kitchen Lab */
+        #stage-cooking {
+            width: 100%;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 25px;
+        }
+
+        .kitchen-lab-board {
+            width: 100%;
+            max-width: 800px;
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: var(--card-shadow);
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+            border: 4px solid white;
+        }
+
+        .lab-cooker-area {
+            display: flex;
+            width: 100%;
+            justify-content: space-around;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .cooking-pot-container {
+            width: 260px;
+            height: 260px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .cooking-pot-svg {
+            width: 100%;
+            height: 100%;
+            filter: drop-shadow(0 8px 16px rgba(0,0,0,0.1));
+        }
+
+        .pot-slot {
+            position: absolute;
+            background: rgba(255,255,255,0.7);
+            border: 2px dashed var(--co2-grey);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+            color: var(--text-dark);
+            transition: all 0.3s;
+        }
+
+        #slot-water {
+            top: 70px;
+            left: 30px;
+            width: 80px;
+            height: 80px;
+        }
+
+        #slot-co2 {
+            top: 70px;
+            right: 30px;
+            width: 80px;
+            height: 80px;
+        }
+
+        #slot-water.filled {
+            border: 3px solid var(--water-blue);
+            background: rgba(33, 150, 243, 0.2);
+        }
+
+        #slot-co2.filled {
+            border: 3px solid var(--co2-grey);
+            background: rgba(144, 164, 174, 0.2);
+        }
+
+        .ingredient-shelf {
+            display: flex;
+            gap: 20px;
+            flex-direction: column;
+            width: 220px;
+        }
+
+        .shelf-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: #f5f5f5;
+            padding: 12px 18px;
+            border-radius: 20px;
+            border: 2px solid #e0e0e0;
+            cursor: grab;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            font-weight: bold;
+            touch-action: none;
+        }
+
+        .shelf-item svg {
+            width: 44px;
+            height: 44px;
+        }
+
+        /* Cooked Outputs Container */
+        .cooked-outputs-shelf {
+            display: none;
+            width: 100%;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 15px;
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .output-product-box {
+            background: white;
+            border: 3px solid var(--sun-orange);
+            border-radius: 20px;
+            padding: 15px 25px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            box-shadow: var(--card-shadow);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .output-product-box:hover {
+            transform: translateY(-5px) scale(1.05);
+        }
+
+        .output-product-box svg {
+            width: 80px;
+            height: 80px;
+        }
+
+        .output-product-box span {
+            font-family: var(--font-title);
+            font-size: 1.15rem;
+            font-weight: bold;
+        }
+
+        /* Stage 5: Green Color Search (Webcam / Game Fallback) */
+        #stage-camera-check {
+            width: 100%;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 25px;
+        }
+
+        .camera-container-box {
+            display: flex;
+            width: 100%;
+            max-width: 800px;
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: var(--card-shadow);
+            padding: 25px;
+            gap: 25px;
+            border: 4px solid white;
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .webcam-feed-outer {
+            width: 280px;
+            height: 280px;
+            border-radius: 50%;
+            border: 6px solid var(--leaf-green);
+            overflow: hidden;
+            position: relative;
+            background: #263238;
+            box-shadow: var(--card-shadow);
+        }
+
+        #webcam-video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1);
+        }
+
+        .camera-overlay-target {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 120px;
+            height: 120px;
+            border: 4px dashed var(--sun-yellow);
+            border-radius: 50%;
+            pointer-events: none;
+            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.4);
+        }
+
+        .detector-dashboard {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            min-width: 250px;
+        }
+
+        .color-progress-outer {
+            width: 100%;
+            height: 24px;
+            background: #e0e0e0;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+            border: 2px solid #ccc;
+        }
+
+        .color-progress-inner {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, #a5d6a7, var(--leaf-green));
+            transition: width 0.1s ease-out;
+        }
+
+        /* Fallback Drag & Drop game styling */
+        .color-fallback-game {
+            display: none;
+            width: 100%;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .fallback-shelf {
+            display: flex;
+            gap: 15px;
+            background: #fff;
+            padding: 20px;
+            border-radius: 20px;
+            border: 2px dashed var(--co2-grey);
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .fallback-item {
+            width: 80px;
+            height: 80px;
+            background: #eceff1;
+            border-radius: 16px;
+            cursor: grab;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: bold;
+            transition: transform 0.2s;
+            touch-action: none;
+        }
+
+        .fallback-item svg {
+            width: 48px;
+            height: 48px;
+        }
+
+        .fallback-buckets {
+            display: flex;
+            gap: 40px;
+            justify-content: center;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .fallback-bucket {
+            width: 180px;
+            height: 180px;
+            border-radius: 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 10px;
+            font-family: var(--font-title);
+            font-size: 1.1rem;
+            font-weight: bold;
+            box-shadow: var(--card-shadow);
+            border: 4px solid white;
+        }
+
+        .fallback-bucket svg {
+            width: 70px;
+            height: 70px;
+        }
+
+        .bucket-green {
+            background: #e8f5e9;
+            border-color: var(--leaf-green-light);
+            color: var(--leaf-green-dark);
+        }
+
+        .bucket-non-green {
+            background: #ffebee;
+            border-color: #ff8a80;
+            color: #d32f2f;
+        }
+
+        /* Stage 6: Master Chef Challenges */
+        #stage-challenges {
+            width: 100%;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 25px;
+        }
+
+        .challenge-container-box {
+            width: 100%;
+            max-width: 850px;
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: var(--card-shadow);
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+            border: 4px solid white;
+        }
+
+        /* Equation drag & drop */
+        .equation-drag-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            gap: 15px;
+        }
+
+        .equation-line {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            width: 100%;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 20px;
+            border: 2px solid #e0e0e0;
+        }
+
+        .eq-slot {
+            width: 130px;
+            height: 60px;
+            border: 3px dashed #b0bec5;
+            background: #fff;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.95rem;
+            color: #78909c;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .eq-slot.correct {
+            border: 3px solid var(--leaf-green);
+            background: #e8f5e9;
+            color: var(--leaf-green-dark);
+        }
+
+        .eq-operator {
+            font-family: var(--font-title);
+            font-size: 1.8rem;
+            color: var(--text-dark);
+            font-weight: bold;
+        }
+
+        .eq-sunlight-arrow {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 0.75rem;
+            font-weight: bold;
+            color: var(--sun-orange);
+        }
+
+        .eq-sunlight-arrow svg {
+            width: 32px;
+            height: 32px;
+            fill: var(--sun-yellow);
+        }
+
+        .eq-items-palette {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 10px;
+        }
+
+        .eq-drag-item {
+            padding: 12px 20px;
+            background: #fff;
+            border: 2px solid #cfd8dc;
+            border-radius: 30px;
+            cursor: grab;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            transition: transform 0.2s;
+            touch-action: none;
+        }
+
+        .eq-drag-item:hover {
+            transform: scale(1.05);
+            border-color: var(--sun-orange);
+        }
+
+        /* Stomata weather control simulation */
+        .stomata-sim-area {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            padding-top: 15px;
+            border-top: 2px dashed #eceff1;
+        }
+
+        .stomata-sim-board {
+            display: flex;
+            width: 100%;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .weather-panel {
+            width: 200px;
+            background: #f5f5f5;
+            border-radius: 20px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            border: 2px solid #e0e0e0;
+        }
+
+        .weather-btn {
+            font-family: var(--font-title);
+            padding: 10px;
+            border: none;
+            border-radius: 12px;
+            background: #fff;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border: 2px solid transparent;
+            transition: all 0.2s;
+            font-weight: bold;
+        }
+
+        .weather-btn.active {
+            border-color: var(--bright-blue);
+            background: var(--sky-blue);
+            color: var(--bright-blue);
+        }
+
+        .weather-btn-hot.active {
+            border-color: var(--sun-orange);
+            background: #fff3e0;
+            color: #e65100;
+        }
+
+        .leaf-state-view {
+            flex: 1;
+            min-width: 260px;
+            height: 220px;
+            background: #e8f5e9;
+            border-radius: 20px;
+            border: 3px solid white;
+            box-shadow: var(--card-shadow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .guard-cells-svg {
+            width: 150px;
+            height: 150px;
+        }
+
+        .stomata-status-text {
+            font-family: var(--font-title);
+            font-size: 1.15rem;
+            color: var(--text-dark);
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        /* Stage 7: Graduation / Certificate Screen */
+        #stage-graduation {
+            width: 100%;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .certificate-card {
+            width: 100%;
+            max-width: 700px;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--card-shadow);
+            padding: 40px;
+            border: 15px double var(--leaf-green-light);
+            text-align: center;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            background-image: radial-gradient(circle, #f1f8e9 10%, transparent 80%);
+        }
+
+        .cert-badge {
+            width: 120px;
+            height: 120px;
+            background: var(--sun-yellow);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 6px 12px rgba(255, 179, 0, 0.3);
+            border: 4px solid #ffb300;
+            animation: pulse 2s infinite;
+        }
+
+        .cert-badge svg {
+            width: 80px;
+            height: 80px;
+        }
+
+        .certificate-card h2 {
+            font-family: var(--font-title);
+            font-size: 2.2rem;
+            color: var(--leaf-green-dark);
+        }
+
+        .certificate-card p {
+            font-size: 1.25rem;
+            line-height: 1.6;
+            max-width: 500px;
+        }
+
+        .certificate-card .cert-name {
+            font-family: var(--font-title);
+            font-size: 1.8rem;
+            color: var(--sun-orange);
+            border-bottom: 2px dashed #ccc;
+            padding: 5px 30px;
+            margin: 10px 0;
+            display: inline-block;
+        }
+
+        /* Animations */
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-12px); }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(2deg); }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.05); }
+        }
+
+        @keyframes spin {
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.7); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Responsive Layout Updates */
+        @media (max-width: 768px) {
+            #start-overlay h1 {
+                font-size: 2.2rem;
+            }
+            header {
+                flex-direction: column;
+                gap: 10px;
+                padding: 10px 15px;
+            }
+            .progress-bar-outer {
+                width: 100%;
+                margin: 5px 0;
+            }
+            #sprouty-box {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+            .speech-bubble::before {
+                display: none;
+            }
+            .curiosity-board {
+                flex-direction: column;
+            }
+            .tab-nav {
+                flex-wrap: wrap;
+            }
+            .tab-content {
+                height: auto;
+                min-height: 380px;
+            }
+            .fallback-buckets {
+                flex-direction: column;
+                gap: 15px;
+                align-items: center;
+            }
+            .certificate-card {
+                padding: 20px;
+                border-width: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Celebration Screen Canvas (Confetti & Fireworks) -->
+    <canvas id="celebration-canvas"></canvas>
+    
+    <!-- Decorative Ambient Particles Canvas -->
+    <canvas id="particle-canvas"></canvas>
+
+    <!-- Start Welcoming Overlay -->
+    <section id="start-overlay">
+        <h1>Sprouty's Green Kitchen</h1>
+        <p>Welcome, Little Scientist! Help Sprouty the hungry leaf unlock the secrets of how plants cook their own food using sunlight. Ready for the adventure?</p>
+        <button class="btn-large" id="btn-start-game">Let's Play! 🌟</button>
+    </section>
+
+    <!-- Audio / Voice Control Toggles -->
+    <div id="audio-controls">
+        <button class="icon-btn" id="btn-toggle-voice" title="Mute/Unmute Sprouty's Voice">
+            <!-- Voice Enabled Icon -->
+            <svg id="voice-svg" viewBox="0 0 24 24">
+                <path d="M12 2c1.1 0 2 .9 2 2v8c0 1.1-.9 2-2 2s-2-.9-2-2V4c0-1.1.9-2 2-2zm6 10c0 3.31-2.69 6-6 6s-6-2.69-6-6H2c0 4.97 3.73 9.07 8.5 9.87V22h3v-3.13c4.77-.8 8.5-4.9 8.5-9.87h-2z"/>
+            </svg>
+        </button>
+        <button class="icon-btn" id="btn-toggle-sound" title="Mute/Unmute Sound FX">
+            <!-- Sound Enabled Icon -->
+            <svg id="sound-svg" viewBox="0 0 24 24">
+                <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+            </svg>
+        </button>
+    </div>
+
+    <!-- Main Container -->
+    <main id="main-container">
+        <header>
+            <div class="stars-container">
+                <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                <span><span id="star-score">0</span> Stars</span>
+            </div>
+            
+            <div class="progress-bar-outer">
+                <div class="progress-bar-inner" id="game-progress"></div>
+            </div>
+
+            <div style="font-family: var(--font-title); font-weight: bold; color: var(--leaf-green-dark); font-size: 1.1rem;">
+                Stage <span id="current-stage-num">1</span>/7
+            </div>
+        </header>
+
+        <!-- Sprouty Chat Banner -->
+        <div id="sprouty-box">
+            <div class="sprouty-avatar">
+                <!-- SVG Avatar of Sprouty (with eye & mouth animation layers) -->
+                <svg id="sprouty-avatar-svg" viewBox="0 0 100 100">
+                    <defs>
+                        <clipPath id="pot-clip"><ellipse cx="50" cy="75" rx="30" ry="20" /></clipPath>
+                    </defs>
+                    <!-- Soil -->
+                    <ellipse cx="50" cy="65" rx="32" ry="8" fill="#5d4037" />
+                    <!-- Stem -->
+                    <path d="M50 65 Q 45 40 48 25" stroke="#4caf50" stroke-width="8" fill="none" stroke-linecap="round"/>
+                    <!-- Leaf Right -->
+                    <path d="M50 42 Q 70 30 65 50 Q 50 55 50 42" fill="#81c784" stroke="#2e7d32" stroke-width="2" />
+                    <!-- Leaf Left -->
+                    <path d="M47 30 Q 25 15 32 35 Q 46 42 47 30" fill="#81c784" stroke="#2e7d32" stroke-width="2" />
+                    <!-- Pot -->
+                    <path d="M20 62 L 25 88 A 5 5 0 0 0 30 92 L 70 92 A 5 5 0 0 0 75 88 L 80 62 Z" fill="#ff7043" />
+                    <ellipse cx="50" cy="62" rx="30" ry="6" fill="#ff5722" />
+                    <!-- Blinking Eyes -->
+                    <circle id="avatar-eye-l" cx="42" cy="73" r="5" fill="#37474f" />
+                    <circle id="avatar-eye-r" cx="58" cy="73" r="5" fill="#37474f" />
+                    <!-- Eye shine -->
+                    <circle id="avatar-eye-l-shine" cx="40.5" cy="71.5" r="1.5" fill="#fff" />
+                    <circle id="avatar-eye-r-shine" cx="56.5" cy="71.5" r="1.5" fill="#fff" />
+                    <!-- Smile Mouth -->
+                    <path id="avatar-mouth" d="M 46 80 Q 50 84 54 80" stroke="#37474f" stroke-width="3" fill="none" stroke-linecap="round" />
+                    <!-- Blush Cheeks -->
+                    <circle cx="35" cy="77" r="3" fill="#ffab91" />
+                    <circle cx="65" cy="77" r="3" fill="#ffab91" />
+                </svg>
+            </div>
+            <div class="speech-bubble" id="sprouty-speech">
+                Hmm, I'm feeling a little bit hungry...
+            </div>
+        </div>
+
+        <!-- ================= STAGE 1: CURIOSITY ================= -->
+        <section class="stage active" id="stage-1">
+            <div class="curiosity-board">
+                <div class="character-container">
+                    <!-- Sprouty character container (SVG details with expressions) -->
+                    <svg class="sprouty-character-large" viewBox="0 0 200 200">
+                        <defs>
+                            <radialGradient id="body-grad" cx="50%" cy="50%" r="50%">
+                                <stop offset="0%" stop-color="#fff59d"/>
+                                <stop offset="100%" stop-color="#fff"/>
+                            </radialGradient>
+                        </defs>
+                        <!-- Stand / Soil shadow -->
+                        <ellipse cx="100" cy="180" rx="70" ry="12" fill="rgba(0,0,0,0.06)" />
+                        <!-- Roots (peek from bottom of pot) -->
+                        <path d="M90 178 Q 80 190 75 195" stroke="#8d6e63" stroke-width="4" stroke-linecap="round" fill="none" />
+                        <path d="M110 178 Q 120 192 125 194" stroke="#8d6e63" stroke-width="4" stroke-linecap="round" fill="none" />
+                        <!-- Stem -->
+                        <path id="stem-curve" d="M100 120 Q 80 70 95 30" stroke="#4caf50" stroke-width="12" fill="none" stroke-linecap="round" />
+                        <!-- Big Leaf Left -->
+                        <path d="M93 80 Q 40 50 60 100 Q 87 105 93 80" fill="#81c784" stroke="#2e7d32" stroke-width="3" />
+                        <!-- Big Leaf Right -->
+                        <path d="M95 55 Q 150 30 140 75 Q 105 85 95 55" fill="#81c784" stroke="#2e7d32" stroke-width="3" />
+                        <!-- Cute Pot body -->
+                        <path d="M50 110 L 60 170 A 8 8 0 0 0 68 178 L 132 178 A 8 8 0 0 0 140 170 L 150 110 Z" fill="#ff7043" />
+                        <ellipse cx="100" cy="110" rx="50" ry="10" fill="#ff5722" />
+                        <!-- Face on Pot -->
+                        <!-- Eyes -->
+                        <g id="pot-eyes">
+                            <circle cx="82" cy="138" r="8" fill="#37474f" />
+                            <circle cx="118" cy="138" r="8" fill="#37474f" />
+                            <!-- Eye sparkles -->
+                            <circle cx="79.5" cy="135.5" r="2.5" fill="#fff" />
+                            <circle cx="115.5" cy="135.5" r="2.5" fill="#fff" />
+                        </g>
+                        <!-- Smile Mouth -->
+                        <path id="pot-mouth" d="M 92 150 Q 100 158 108 150" stroke="#37474f" stroke-width="4" fill="none" stroke-linecap="round" />
+                        <!-- Cheeks -->
+                        <circle cx="70" cy="144" r="6" fill="#ffab91" />
+                        <circle cx="130" cy="144" r="6" fill="#ffab91" />
+                    </svg>
+                </div>
+
+                <div style="display: flex; flex-direction: column; align-items: center; gap: 15px;">
+                    <h3 style="font-family: var(--font-title); font-size: 1.5rem; text-align: center;">Drag food to Sprouty!</h3>
+                    <div class="food-plate" id="curiosity-plate">
+                        <div class="food-item" draggable="true" id="drag-burger">
+                            <svg viewBox="0 0 64 64">
+                                <path d="M6 34 C6 20, 58 20, 58 34 Z" fill="#ffa726"/>
+                                <rect x="4" y="34" width="56" height="6" fill="#ef5350" rx="3"/>
+                                <path d="M8 40 L56 40 L52 52 L12 52 Z" fill="#ffa726"/>
+                                <rect x="2" y="31" width="60" height="3" fill="#4caf50" rx="1.5"/>
+                            </svg>
+                            Burger
+                        </div>
+                        <div class="food-item" draggable="true" id="drag-apple">
+                            <svg viewBox="0 0 64 64">
+                                <path d="M32 14 C22 14, 14 20, 14 34 C14 48, 22 56, 32 56 C42 56, 50 48, 50 34 C50 20, 42 14, 32 14 Z" fill="#e53935"/>
+                                <path d="M32 14 Q30 4 36 2" stroke="#8d6e63" stroke-width="3" fill="none"/>
+                                <path d="M34 6 Q44 6 42 14 Q34 16 34 6" fill="#4caf50"/>
+                            </svg>
+                            Apple
+                        </div>
+                        <div class="food-item" draggable="true" id="drag-water">
+                            <svg viewBox="0 0 64 64">
+                                <path d="M32 4 C32 4, 12 36, 12 46 A 20 20 0 0 0 52 46 C52 36, 32 4, 32 4 Z" fill="#29b6f6"/>
+                            </svg>
+                            Water
+                        </div>
+                        <div class="food-item" draggable="true" id="drag-sunlight">
+                            <svg viewBox="0 0 64 64">
+                                <circle cx="32" cy="32" r="14" fill="#ffb300"/>
+                                <g stroke="#ffb300" stroke-width="4" stroke-linecap="round">
+                                    <line x1="32" y1="6" x2="32" y2="12" />
+                                    <line x1="32" y1="52" x2="32" y2="58" />
+                                    <line x1="6" y1="32" x2="12" y2="32" />
+                                    <line x1="52" y1="32" x2="58" y2="32" />
+                                    <line x1="14" y1="14" x2="18.5" y2="18.5" />
+                                    <line x1="45.5" y1="45.5" x2="50" y2="50" />
+                                    <line x1="14" y1="50" x2="18.5" y2="45.5" />
+                                    <line x1="45.5" y1="18.5" x2="50" y2="14" />
+                                </g>
+                            </svg>
+                            Sunlight
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <button class="btn-large" id="btn-goto-2" style="margin-top: 30px; display: none;">Next: Zoom into Leaf! 🔍</button>
+        </section>
+
+        <!-- ================= STAGE 2: ZOOM EXPLORER ================= -->
+        <section class="stage" id="stage-2">
+            <div class="zoom-view-container">
+                <!-- SVG interactive Zoom of a Leaf -->
+                <svg class="leaf-zoom-svg" id="leaf-svg" viewBox="0 0 800 400">
+                    <g id="leaf-layer">
+                        <!-- Background cell mesh -->
+                        <path d="M 0 0 L 800 0 L 800 400 L 0 400 Z" fill="#c8e6c9" />
+                        <!-- Leaf outer outline contour -->
+                        <path d="M 50 200 Q 300 40 700 200 Q 300 360 50 200 Z" fill="#4caf50" stroke="#2e7d32" stroke-width="8" />
+                        <!-- Center Vein -->
+                        <path d="M 50 200 Q 400 200 700 200" stroke="#81c784" stroke-width="12" stroke-linecap="round" fill="none" />
+                        <!-- Side Veins -->
+                        <path d="M 200 200 Q 250 140 320 80" stroke="#81c784" stroke-width="6" stroke-linecap="round" fill="none"/>
+                        <path d="M 200 200 Q 250 260 320 320" stroke="#81c784" stroke-width="6" stroke-linecap="round" fill="none"/>
+                        <path d="M 380 200 Q 430 140 500 80" stroke="#81c784" stroke-width="6" stroke-linecap="round" fill="none"/>
+                        <path d="M 380 200 Q 430 260 500 320" stroke="#81c784" stroke-width="6" stroke-linecap="round" fill="none"/>
+                    </g>
+                    
+                    <!-- Microscopic view overlay (zoomed-in chloroplast and stomata cells) -->
+                    <g id="micro-layer" opacity="0" transform="translate(0, 400)">
+                        <!-- Cellular background grid -->
+                        <rect x="0" y="0" width="800" height="400" fill="#e8f5e9" />
+                        <!-- Plant Cell Walls -->
+                        <path d="M 50 50 L 250 40 L 400 80 L 350 250 L 150 280 L 50 200 Z" fill="#a5d6a7" stroke="#388e3c" stroke-width="5" opacity="0.8"/>
+                        <path d="M 400 80 L 600 50 L 750 120 L 700 300 L 520 280 L 350 250 Z" fill="#a5d6a7" stroke="#388e3c" stroke-width="5" opacity="0.8"/>
+                        
+                        <!-- Stomata Mouth (Left/Middle Guard Cells) -->
+                        <g id="stomata-interactive" cursor="pointer" transform="translate(200, 180)">
+                            <!-- Guard Cell Left -->
+                            <path id="guard-l" d="M -5 -60 Q -40 0 -5 60 Q -15 0 -5 -60" fill="#81c784" stroke="#2e7d32" stroke-width="4" />
+                            <!-- Guard Cell Right -->
+                            <path id="guard-r" d="M 5 -60 Q 40 0 5 60 Q 15 0 5 -60" fill="#81c784" stroke="#2e7d32" stroke-width="4" />
+                            <!-- Breathing center pore -->
+                            <ellipse id="stoma-pore" cx="0" cy="0" rx="5" ry="58" fill="#1b5e20" />
+                            <!-- Cartoon eyes on guard cells -->
+                            <circle cx="-18" cy="-10" r="3" fill="#000" /><circle cx="18" cy="-10" r="3" fill="#000" />
+                            <path d="M -22 -16 Q -18 -20 -14 -16" stroke="#000" stroke-width="2" fill="none"/>
+                            <path d="M 14 -16 Q 18 -20 22 -16" stroke="#000" stroke-width="2" fill="none"/>
+                            <text x="0" y="85" text-anchor="middle" font-family="Fredoka" font-size="1.2rem" fill="#1b5e20" font-weight="bold">Stomata</text>
+                        </g>
+
+                        <!-- Chloroplast kitchens -->
+                        <g id="chloroplast-interact" cursor="pointer" transform="translate(550, 180)">
+                            <!-- Bean cell shape -->
+                            <ellipse cx="0" cy="0" rx="90" ry="60" fill="#2e7d32" stroke="#1b5e20" stroke-width="6"/>
+                            <!-- Inner Thylakoid stacks (green pancakes) -->
+                            <ellipse cx="-40" cy="-20" rx="20" ry="8" fill="#81c784" />
+                            <ellipse cx="-40" cy="-12" rx="20" ry="8" fill="#a5d6a7" />
+                            <ellipse cx="30" cy="20" rx="25" ry="10" fill="#81c784" />
+                            <ellipse cx="30" cy="28" rx="25" ry="10" fill="#a5d6a7" />
+                            <!-- Chef Chef hat -->
+                            <path d="M -30 -58 Q -50 -100 0 -95 Q 50 -100 30 -58 Z" fill="#ffffff" stroke="#2e7d32" stroke-width="3" />
+                            <rect x="-30" y="-62" width="60" height="8" fill="#eceff1" rx="2" stroke="#2e7d32" stroke-width="2" />
+                            <!-- Cute eyes and smile -->
+                            <circle cx="-20" cy="0" r="6" fill="#fff" /><circle cx="20" cy="0" r="6" fill="#fff" />
+                            <circle cx="-20" cy="0" r="3" fill="#000" /><circle cx="20" cy="0" r="3" fill="#000" />
+                            <path d="M -8 18 Q 0 25 8 18" stroke="#fff" stroke-width="4" stroke-linecap="round" fill="none"/>
+                            <text x="0" y="85" text-anchor="middle" font-family="Fredoka" font-size="1.2rem" fill="#1b5e20" font-weight="bold">Chloroplast</text>
+                        </g>
+                    </g>
+                </svg>
+                
+                <!-- Macro zoom indicator -->
+                <div class="macro-hotspot" id="zoom-guide-btn" style="top: 180px; left: 380px;">
+                    Tap to Zoom In! 🔍
+                </div>
+            </div>
+            
+            <button class="btn-large" id="btn-goto-3" style="display: none;">Next: Gather Ingredients! 🧺</button>
+        </section>
+
+        <!-- ================= STAGE 3: GATHERING ================= -->
+        <section class="stage" id="stage-3">
+            <nav class="tab-nav">
+                <button class="tab-btn active" id="tab-btn-water">
+                    💧 1. Water
+                </button>
+                <button class="tab-btn" id="tab-btn-co2">
+                    ☁️ 2. Carbon Dioxide
+                </button>
+                <button class="tab-btn" id="tab-btn-light">
+                    ☀️ 3. Sunlight
+                </button>
+            </nav>
+
+            <!-- Water (H2O) Tab -->
+            <div class="tab-content active" id="tab-water">
+                <div style="text-align: center; margin-bottom: 10px;">
+                    <h3 style="font-family: var(--font-title); font-size: 1.25rem;">Tap the floating water drops under the soil to guide them up!</h3>
+                    <p style="font-size: 0.95rem;">Gathered: <span id="gathered-water-count">0</span> / 5 drops</p>
+                </div>
+                <div class="roots-svg-container" id="roots-interactive-board">
+                    <svg viewBox="0 0 600 300">
+                        <!-- Soil baseline -->
+                        <rect x="0" y="100" width="600" height="200" fill="#a1887f" opacity="0.7"/>
+                        <line x1="0" y1="100" x2="600" y2="100" stroke="#5d4037" stroke-width="4"/>
+                        <!-- Trunk base going up -->
+                        <path d="M 300 100 Q 300 0 300 0" stroke="#8d6e63" stroke-width="16" fill="none"/>
+                        <!-- Root main paths branching down -->
+                        <path id="root-path-1" d="M 300 100 Q 250 150 150 200" stroke="#8d6e63" stroke-width="8" fill="none" stroke-linecap="round"/>
+                        <path id="root-path-2" d="M 300 100 Q 300 170 300 250" stroke="#8d6e63" stroke-width="8" fill="none" stroke-linecap="round"/>
+                        <path id="root-path-3" d="M 300 100 Q 350 150 450 200" stroke="#8d6e63" stroke-width="8" fill="none" stroke-linecap="round"/>
+                    </svg>
+                    
+                    <!-- Water drops spawned dynamically -->
+                </div>
+            </div>
+
+            <!-- Carbon Dioxide (CO2) Tab -->
+            <div class="tab-content" id="tab-co2">
+                <div style="text-align: center; margin-bottom: 10px;">
+                    <h3 style="font-family: var(--font-title); font-size: 1.25rem;">Catch floating Carbon Dioxide (CO2) molecules in the air!</h3>
+                    <p style="font-size: 0.95rem;">Captured: <span id="gathered-co2-count">0</span> / 5 molecules</p>
+                </div>
+                <div class="air-game-canvas" id="air-co2-board">
+                    <!-- CO2 bubbles generated dynamically in JS -->
+                </div>
+            </div>
+
+            <!-- Sunlight Tab -->
+            <div class="tab-content" id="tab-light">
+                <div class="sunlight-charger-area">
+                    <div class="sunlight-interactive-side" id="sun-ray-board">
+                        <div style="text-align: center; pointer-events: none; z-index: 2;">
+                            <h3 style="font-family: var(--font-title); font-size: 1.3rem; color: #e65100;">Tap the shining Sun Rays!</h3>
+                            <p style="color: #f57c00; font-weight: 500;">Fill the solar energy meter!</p>
+                        </div>
+                        <!-- Rays spawned dynamically in JS -->
+                    </div>
+                    <div class="energy-meter-side">
+                        <span class="counter-badge" id="energy-percentage">0%</span>
+                        <div class="energy-bar-outer">
+                            <div class="energy-bar-inner" id="energy-bar"></div>
+                        </div>
+                        <span style="font-size: 0.9rem; font-weight: bold; color: var(--text-dark);">Solar Power</span>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn-large" id="btn-goto-4" style="margin-top: 20px; display: none;">Next: Cooking Lab! 🍳</button>
+        </section>
+
+        <!-- ================= STAGE 4: COOKING KITCHEN ================= -->
+        <section class="stage" id="stage-4">
+            <div class="kitchen-lab-board">
+                <div style="text-align: center;">
+                    <h2 style="font-family: var(--font-title); color: var(--leaf-green-dark); margin-bottom: 8px;">Sprouty's Green Kitchen</h2>
+                    <p>Drag one H2O (Water) and one CO2 (Carbon Dioxide) into the chloroplast blender!</p>
+                </div>
+
+                <div class="lab-cooker-area">
+                    <div class="ingredient-shelf">
+                        <div class="shelf-item" draggable="true" id="shelf-water">
+                            <svg viewBox="0 0 64 64">
+                                <path d="M32 8 C32 8, 16 36, 16 46 A 16 16 0 0 0 48 46 C48 36, 32 8, 32 8 Z" fill="#29b6f6"/>
+                            </svg>
+                            Water (H2O)
+                        </div>
+                        <div class="shelf-item" draggable="true" id="shelf-co2">
+                            <svg viewBox="0 0 64 64">
+                                <circle cx="32" cy="32" r="18" fill="#78909c"/>
+                                <circle cx="16" cy="24" r="10" fill="#cfd8dc"/>
+                                <circle cx="48" cy="40" r="10" fill="#cfd8dc"/>
+                            </svg>
+                            CO2 Molecule
+                        </div>
+                    </div>
+
+                    <div class="cooking-pot-container">
+                        <!-- SVG Blender / Cooker -->
+                        <svg class="cooking-pot-svg" viewBox="0 0 200 200">
+                            <!-- Blender Base -->
+                            <rect x="50" y="140" width="100" height="40" fill="#b0bec5" rx="10" />
+                            <circle cx="100" cy="160" r="10" fill="#e53935" id="cooker-button" style="cursor: pointer;" />
+                            <!-- Transparent Pitcher -->
+                            <path d="M 60 40 L 140 40 L 130 135 L 70 135 Z" fill="rgba(224, 242, 241, 0.6)" stroke="#00b0ff" stroke-width="4" />
+                            <path d="M 60 40 L 45 40 L 45 90 L 65 80" fill="none" stroke="#00b0ff" stroke-width="4" stroke-linecap="round"/>
+                            <!-- Blender Lid -->
+                            <path d="M 55 35 L 145 35 L 140 25 L 60 25 Z" fill="#37474f" />
+                        </svg>
+                        
+                        <!-- Drop slots inside the blender pitcher -->
+                        <div class="pot-slot" id="slot-water">H2O Slot</div>
+                        <div class="pot-slot" id="slot-co2">CO2 Slot</div>
+                    </div>
+                </div>
+
+                <!-- Cook / Activate Button -->
+                <button class="btn-large" id="btn-cook-action" style="display: none;">Cook with Sunlight! ☀️</button>
+
+                <!-- Outputs resulting from chemical reaction -->
+                <div class="cooked-outputs-shelf" id="outputs-box">
+                    <div class="output-product-box" id="click-collect-glucose">
+                        <!-- Sweet Energy Star SVG -->
+                        <svg viewBox="0 0 64 64">
+                            <polygon points="32,6 39,23 58,23 43,34 49,52 32,41 15,52 21,34 6,23 25,23" fill="#ffca28" stroke="#ff8f00" stroke-width="2"/>
+                            <circle cx="24" cy="27" r="2.5" fill="#37474f" /><circle cx="40" cy="27" r="2.5" fill="#37474f" />
+                            <path d="M 28 35 Q 32 39 36 35" stroke="#37474f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                        </svg>
+                        <span>Glucose (Food)</span>
+                    </div>
+                    <div class="output-product-box" id="click-collect-oxygen">
+                        <!-- Oxygen bubble SVG -->
+                        <svg viewBox="0 0 64 64">
+                            <circle cx="32" cy="32" r="24" fill="#e0f7fa" stroke="#00e5ff" stroke-width="3" opacity="0.9"/>
+                            <circle cx="24" cy="24" r="3" fill="#fff" />
+                            <circle cx="26" cy="30" r="2.5" fill="#37474f" /><circle cx="38" cy="30" r="2.5" fill="#37474f" />
+                            <path d="M 29 38 Q 32 41 35 38" stroke="#37474f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                        </svg>
+                        <span>Oxygen (O2)</span>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn-large" id="btn-goto-5" style="margin-top: 20px; display: none;">Next: Find Chlorophyll! 🌿</button>
+        </section>
+
+        <!-- ================= STAGE 5: WEBCAM COLOR / FALLBACK ================= -->
+        <section class="stage" id="stage-5">
+            <div class="camera-container-box">
+                <div style="width: 100%; text-align: center; margin-bottom: 10px;">
+                    <h2 style="font-family: var(--font-title); color: var(--leaf-green-dark);">Find the Green Chlorophyll!</h2>
+                    <p style="margin-top: 5px;">Plants are green because of **Chlorophyll** which absorbs sunlight. Can you find something green in your room and show it to the camera?</p>
+                </div>
+
+                <!-- Webcam Feed Panel -->
+                <div class="webcam-feed-outer" id="webcam-preview-box">
+                    <video id="webcam-video" autoplay playsinline muted></video>
+                    <div class="camera-overlay-target"></div>
+                </div>
+
+                <div class="detector-dashboard" id="webcam-dashboard">
+                    <h3 style="font-family: var(--font-title); color: var(--leaf-green-dark);" id="camera-status-label">Awaiting camera permission...</h3>
+                    <div class="color-progress-outer">
+                        <div class="color-progress-inner" id="green-progress-bar"></div>
+                    </div>
+                    <div style="display: flex; gap: 10px; margin-top: 10px;">
+                        <button class="weather-btn" id="btn-enable-camera" style="flex: 1; background: var(--sun-orange); color: white;">Start Camera 📷</button>
+                        <button class="weather-btn" id="btn-skip-camera" style="flex: 1; background: #cfd8dc;">Play Sorting Game instead 🧩</button>
+                    </div>
+                </div>
+
+                <!-- Fallback interactive matching game -->
+                <div class="color-fallback-game" id="camera-fallback-board">
+                    <h3 style="font-family: var(--font-title); color: var(--leaf-green-dark); text-align: center;">Drag only the GREEN items (with Chlorophyll) into the jar!</h3>
+                    
+                    <div class="fallback-shelf" id="fallback-items-shelf">
+                        <div class="fallback-item" draggable="true" id="item-green-leaf">
+                            <svg viewBox="0 0 64 64"><path d="M12 50 Q 20 20 50 12 Q 40 40 12 50 Z" fill="#4caf50" stroke="#2e7d32" stroke-width="2"/></svg>
+                            Leaf
+                        </div>
+                        <div class="fallback-item" draggable="true" id="item-red-apple">
+                            <svg viewBox="0 0 64 64"><circle cx="32" cy="34" r="20" fill="#f44336"/></svg>
+                            Red Apple
+                        </div>
+                        <div class="fallback-item" draggable="true" id="item-green-frog">
+                            <svg viewBox="0 0 64 64"><circle cx="32" cy="34" r="18" fill="#81c784"/><circle cx="20" cy="18" r="8" fill="#81c784"/><circle cx="44" cy="18" r="8" fill="#81c784"/></svg>
+                            Frog
+                        </div>
+                        <div class="fallback-item" draggable="true" id="item-yellow-banana">
+                            <svg viewBox="0 0 64 64"><path d="M10 10 Q 30 15 50 50 Q 40 50 10 10 Z" fill="#ffeb3b"/></svg>
+                            Banana
+                        </div>
+                        <div class="fallback-item" draggable="true" id="item-green-grass">
+                            <svg viewBox="0 0 64 64"><path d="M10 54 L 20 10 L 30 54 L 40 15 L 50 54 Z" stroke="#4caf50" stroke-width="4" fill="none"/></svg>
+                            Grass
+                        </div>
+                    </div>
+
+                    <div class="fallback-buckets">
+                        <div class="fallback-bucket bucket-green" id="bucket-chlorophyll">
+                            <svg viewBox="0 0 64 64">
+                                <rect x="16" y="20" width="32" height="36" fill="rgba(200, 230, 201, 0.5)" stroke="#4caf50" stroke-width="4" rx="5"/>
+                                <rect x="20" y="12" width="24" height="8" fill="#4caf50"/>
+                            </svg>
+                            Chlorophyll Jar
+                        </div>
+                        <div class="fallback-bucket bucket-non-green" id="bucket-normal">
+                            <svg viewBox="0 0 64 64">
+                                <rect x="16" y="20" width="32" height="36" fill="rgba(255, 205, 210, 0.5)" stroke="#f44336" stroke-width="4" rx="5"/>
+                                <line x1="20" y1="12" x2="44" y2="12" stroke="#f44336" stroke-width="6" stroke-linecap="round"/>
+                            </svg>
+                            Recycle Bin
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn-large" id="btn-goto-6" style="margin-top: 20px; display: none;">Next: Final Challenges! 🏆</button>
+        </section>
+
+        <!-- ================= STAGE 6: CHALLENGES ================= -->
+        <section class="stage" id="stage-6">
+            <div class="challenge-container-box">
+                <div style="text-align: center;">
+                    <h2 style="font-family: var(--font-title); color: var(--leaf-green-dark); margin-bottom: 6px;">The Master Chef Final Exam</h2>
+                    <p>Show Sprouty that you know every step of the cooking recipe!</p>
+                </div>
+
+                <!-- Equation Builder Challenge -->
+                <div class="equation-drag-area">
+                    <h3 style="font-family: var(--font-title); color: var(--leaf-green-dark);">1. Build the Photosynthesis Recipe:</h3>
+                    
+                    <div class="equation-line">
+                        <div class="eq-slot" id="eq-slot-1" data-answer="Water">Drag Here</div>
+                        <div class="eq-operator">+</div>
+                        <div class="eq-slot" id="eq-slot-2" data-answer="Carbon Dioxide">Drag Here</div>
+                        
+                        <div class="eq-sunlight-arrow">
+                            <span>Sunlight</span>
+                            <svg viewBox="0 0 24 24"><path d="M16.01 11H4v2h12.01v3L20 12l-3.99-4z"/></svg>
+                            <span>Chlorophyll</span>
+                        </div>
+                        
+                        <div class="eq-slot" id="eq-slot-3" data-answer="Glucose">Drag Here</div>
+                        <div class="eq-operator">+</div>
+                        <div class="eq-slot" id="eq-slot-4" data-answer="Oxygen">Drag Here</div>
+                    </div>
+
+                    <div class="eq-items-palette" id="eq-drag-items-container">
+                        <div class="eq-drag-item" draggable="true" id="eq-item-water">Water</div>
+                        <div class="eq-drag-item" draggable="true" id="eq-item-co2">Carbon Dioxide</div>
+                        <div class="eq-drag-item" draggable="true" id="eq-item-glucose">Glucose</div>
+                        <div class="eq-drag-item" draggable="true" id="eq-item-oxygen">Oxygen</div>
+                        <div class="eq-drag-item" draggable="true" id="eq-item-burger">Burger</div>
+                        <div class="eq-drag-item" draggable="true" id="eq-item-sand">Sand</div>
+                    </div>
+                </div>
+
+                <!-- Stomata weather controller simulation -->
+                <div class="stomata-sim-area">
+                    <h3 style="font-family: var(--font-title); color: var(--leaf-green-dark);">2. Save Sprouty from Wilting!</h3>
+                    <p style="text-align: center; font-size: 0.95rem; margin-bottom: 5px;">Adjust the Stomata (pores) to protect the plant depending on the weather conditions.</p>
+                    
+                    <div class="stomata-sim-board">
+                        <div class="weather-panel">
+                            <span style="font-weight: bold; font-size: 0.9rem; text-align: center; margin-bottom: 8px;">Set Weather:</span>
+                            <button class="weather-btn weather-btn-cool active" id="weather-cool">☁️ Nice & Cloudy</button>
+                            <button class="weather-btn weather-btn-hot" id="weather-hot">☀️ Super Hot & Dry</button>
+                        </div>
+                        
+                        <div class="leaf-state-view" id="stomata-simulation-view">
+                            <!-- Large interactive guard cells -->
+                            <svg class="guard-cells-svg" viewBox="0 0 100 100" style="cursor: pointer;" id="interactive-stoma-control">
+                                <path id="sim-guard-l" d="M 45 10 Q 15 50 45 90 Q 30 50 45 10" fill="#a5d6a7" stroke="#2e7d32" stroke-width="3" />
+                                <path id="sim-guard-r" d="M 55 10 Q 85 50 55 90 Q 70 50 55 10" fill="#a5d6a7" stroke="#2e7d32" stroke-width="3" />
+                                <ellipse id="sim-pore" cx="50" cy="50" rx="4" ry="38" fill="#1b5e20" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="stomata-status-text" id="sim-stoma-status">Stomata is currently: OPEN</div>
+                </div>
+            </div>
+
+            <button class="btn-large" id="btn-goto-7" style="margin-top: 20px; display: none;">Claim my Badge! 🎓</button>
+        </section>
+
+        <!-- ================= STAGE 7: GRADUATION ================= -->
+        <section class="stage" id="stage-7">
+            <div class="certificate-card">
+                <div class="cert-badge">
+                    <!-- SVG Chef Badge -->
+                    <svg viewBox="0 0 64 64">
+                        <polygon points="32,6 39,23 58,23 43,34 49,52 32,41 15,52 21,34 6,23 25,23" fill="#ffd54f"/>
+                        <path d="M12 28 Q32 34 52 28 L32 58 Z" fill="#81c784" opacity="0.7"/>
+                        <ellipse cx="32" cy="24" rx="8" ry="8" fill="#2e7d32" />
+                    </svg>
+                </div>
+                <h2>Certificate of Brilliance!</h2>
+                <p>This certifies that our new Master Plant Chef</p>
+                <div class="cert-name" id="player-cert-name">Junior Botanist</div>
+                <p>has mastered the magic of **Photosynthesis**, unlocked the secrets of **Chloroplast kitchens**, controlled the **Stomata**, and helped plants grow happy and strong!</p>
+                
+                <div style="display: flex; gap: 15px; margin-top: 15px;">
+                    <button class="btn-large" id="btn-replay">Play Again 🔄</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- JS Logic Core -->
+    <script>
+        /* ================= AUDIO SYNTH MODULE (Web Audio API) ================= */
+        class SoundSynth {
+            constructor() {
+                this.ctx = null;
+                this.muted = false;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (this.ctx && this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            }
+
+            playPop() {
+                if (this.muted || !this.ctx) return;
+                let osc = this.ctx.createOscillator();
+                let gain = this.ctx.createGain();
+                
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(150, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(800, this.ctx.currentTime + 0.15);
+                
+                gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.15);
+                
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.16);
+            }
+
+            playSuccess() {
+                if (this.muted || !this.ctx) return;
+                const notes = [261.63, 329.63, 392.00, 523.25]; // C4, E4, G4, C5
+                const now = this.ctx.currentTime;
+                
+                notes.forEach((freq, idx) => {
+                    let osc = this.ctx.createOscillator();
+                    let gain = this.ctx.createGain();
+                    
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(freq, now + (idx * 0.08));
+                    
+                    gain.gain.setValueAtTime(0, now);
+                    gain.gain.linearRampToValueAtTime(0.15, now + (idx * 0.08) + 0.02);
+                    gain.gain.linearRampToValueAtTime(0.01, now + (idx * 0.08) + 0.25);
+                    
+                    osc.start(now + (idx * 0.08));
+                    osc.stop(now + (idx * 0.08) + 0.3);
+                });
+            }
+
+            playError() {
+                if (this.muted || !this.ctx) return;
+                let osc = this.ctx.createOscillator();
+                let gain = this.ctx.createGain();
+                
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(180, this.ctx.currentTime);
+                osc.frequency.linearRampToValueAtTime(100, this.ctx.currentTime + 0.25);
+                
+                gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.25);
+                
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.26);
+            }
+
+            playSparkle() {
+                if (this.muted || !this.ctx) return;
+                const now = this.ctx.currentTime;
+                for (let i = 0; i < 6; i++) {
+                    let osc = this.ctx.createOscillator();
+                    let gain = this.ctx.createGain();
+                    
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(800 + Math.random() * 600, now + (i * 0.05));
+                    
+                    gain.gain.setValueAtTime(0.08, now + (i * 0.05));
+                    gain.gain.linearRampToValueAtTime(0.01, now + (i * 0.05) + 0.1);
+                    
+                    osc.start(now + (i * 0.05));
+                    osc.stop(now + (i * 0.05) + 0.12);
+                }
+            }
+
+            playPowerUp() {
+                if (this.muted || !this.ctx) return;
+                let osc = this.ctx.createOscillator();
+                let gain = this.ctx.createGain();
+                
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(300, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(1200, this.ctx.currentTime + 0.4);
+                
+                gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.4);
+                
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.41);
+            }
+
+            playFanfare() {
+                if (this.muted || !this.ctx) return;
+                const melody = [523.25, 523.25, 523.25, 523.25, 659.25, 587.33, 659.25, 783.99]; // C5 C5 C5 C5 E5 D5 E5 G5
+                const timing = [0.15, 0.15, 0.15, 0.3, 0.15, 0.15, 0.15, 0.6];
+                let currentStart = this.ctx.currentTime;
+
+                melody.forEach((freq, idx) => {
+                    let osc = this.ctx.createOscillator();
+                    let gain = this.ctx.createGain();
+                    
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(freq, currentStart);
+                    
+                    gain.gain.setValueAtTime(0.12, currentStart);
+                    gain.gain.linearRampToValueAtTime(0.01, currentStart + timing[idx] - 0.02);
+                    
+                    osc.start(currentStart);
+                    osc.stop(currentStart + timing[idx]);
+                    
+                    currentStart += timing[idx];
+                });
+            }
+        }
+
+        const sound = new SoundSynth();
+
+        /* ================= SPEECH SYNTHESIS ENGINE ================= */
+        class SpeechEngine {
+            constructor() {
+                this.enabled = true;
+            }
+
+            speak(text, callback = null) {
+                if (!this.enabled) {
+                    if (callback) callback();
+                    return;
+                }
+                
+                // Cancel existing speech
+                window.speechSynthesis.cancel();
+                
+                let utterance = new SpeechSynthesisUtterance(text);
+                
+                // Look for a child/friendly sounding english voice if available
+                let voices = window.speechSynthesis.getVoices();
+                let selectedVoice = voices.find(voice => voice.lang.includes('en') && voice.name.toLowerCase().includes('google'));
+                if (!selectedVoice) {
+                    selectedVoice = voices.find(voice => voice.lang.includes('en'));
+                }
+                if (selectedVoice) {
+                    utterance.voice = selectedVoice;
+                }
+                
+                utterance.rate = 1.05; // Slightly faster for kid flow
+                utterance.pitch = 1.15; // Cheerful tone
+                
+                utterance.onend = () => {
+                    if (callback) callback();
+                };
+                
+                utterance.onerror = () => {
+                    if (callback) callback();
+                };
+
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        const speech = new SpeechEngine();
+
+        // Populate voice list when ready (some browsers load asynchronously)
+        if (typeof speechSynthesis !== 'undefined' && speechSynthesis.onvoiceschanged !== undefined) {
+            speechSynthesis.onvoiceschanged = () => {};
+        }
+
+        /* ================= GAME ENVIRONMENT & STATE ================= */
+        const gameState = {
+            currentStage: 1,
+            stars: 0,
+            gatheredWater: 0,
+            gatheredCO2: 0,
+            solarEnergy: 0,
+            stage3CompletedTabs: { water: false, co2: false, light: false },
+            blenderContent: { water: false, co2: false },
+            collectedGlucose: false,
+            collectedOxygen: false,
+            webcamActive: false,
+            webcamStream: null,
+            webcamFinished: false,
+            fallbackFinished: false,
+            sortingScores: { 'green-leaf': false, 'red-apple': false, 'green-frog': false, 'yellow-banana': false, 'green-grass': false },
+            equationAnswers: { slot1: null, slot2: null, slot3: null, slot4: null },
+            weatherState: 'cool', // cool vs hot
+            stomataState: 'open',  // open vs closed
+            stomataActivityCompleted: false
+        };
+
+        const stageProgressMap = [10, 25, 45, 60, 75, 90, 100]; // Progress bar widths
+
+        // HTML Node Hooks
+        const nodes = {
+            startOverlay: document.getElementById('start-overlay'),
+            btnStartGame: document.getElementById('btn-start-game'),
+            mainContainer: document.getElementById('main-container'),
+            btnToggleVoice: document.getElementById('btn-toggle-voice'),
+            btnToggleSound: document.getElementById('btn-toggle-sound'),
+            voiceSvg: document.getElementById('voice-svg'),
+            soundSvg: document.getElementById('sound-svg'),
+            starScore: document.getElementById('star-score'),
+            gameProgress: document.getElementById('game-progress'),
+            currentStageNum: document.getElementById('current-stage-num'),
+            sproutySpeech: document.getElementById('sprouty-speech'),
+            playerCertName: document.getElementById('player-cert-name'),
+            celebrationCanvas: document.getElementById('celebration-canvas'),
+            particleCanvas: document.getElementById('particle-canvas')
+        };
+
+        /* ================= INTERACTIVE DIALOGUE SYSTEM ================= */
+        function triggerSproutySpeak(text) {
+            nodes.sproutySpeech.innerHTML = text;
+            animateMouth(true);
+            speech.speak(text, () => {
+                animateMouth(false);
+            });
+        }
+
+        // SVG Avatar mouth animation
+        let mouthInterval = null;
+        function animateMouth(start) {
+            const mouth = document.getElementById('avatar-mouth');
+            if (!mouth) return;
+            if (start) {
+                if (mouthInterval) clearInterval(mouthInterval);
+                mouthInterval = setInterval(() => {
+                    let open = Math.random() > 0.5;
+                    mouth.setAttribute('d', open ? 'M 44 82 Q 50 88 56 82' : 'M 46 80 Q 50 84 54 80');
+                }, 120);
+            } else {
+                clearInterval(mouthInterval);
+                mouth.setAttribute('d', 'M 46 80 Q 50 84 54 80');
+            }
+        }
+
+        // Auto Blink animation
+        setInterval(() => {
+            const eyel = document.getElementById('avatar-eye-l');
+            const eyer = document.getElementById('avatar-eye-r');
+            const eyeshineL = document.getElementById('avatar-eye-l-shine');
+            const eyeshineR = document.getElementById('avatar-eye-r-shine');
+            
+            if (eyel && eyer) {
+                eyel.setAttribute('ry', '1');
+                eyer.setAttribute('ry', '1');
+                if (eyeshineL) eyeshineL.style.opacity = '0';
+                if (eyeshineR) eyeshineR.style.opacity = '0';
+                
+                setTimeout(() => {
+                    eyel.setAttribute('ry', '5');
+                    eyer.setAttribute('ry', '5');
+                    if (eyeshineL) eyeshineL.style.opacity = '1';
+                    if (eyeshineR) eyeshineR.style.opacity = '1';
+                }, 150);
+            }
+        }, 4000);
+
+        function updateProgress() {
+            nodes.gameProgress.style.width = stageProgressMap[gameState.currentStage - 1] + '%';
+            nodes.currentStageNum.innerText = gameState.currentStage;
+            nodes.starScore.innerText = gameState.stars;
+        }
+
+        function addStars(num) {
+            gameState.stars += num;
+            nodes.starScore.innerText = gameState.stars;
+            sound.playSuccess();
+            triggerParticlePulse();
+        }
+
+        function showStage(stageIdx) {
+            gameState.currentStage = stageIdx;
+            updateProgress();
+            
+            // Hide all stages
+            document.querySelectorAll('.stage').forEach(el => el.classList.remove('active'));
+            
+            // Show new stage
+            document.getElementById(`stage-${stageIdx}`).classList.add('active');
+            
+            // Initialize stage actions
+            initStage(stageIdx);
+        }
+
+        function initStage(idx) {
+            if (idx === 1) {
+                triggerSproutySpeak("I don't have a mouth! How do I eat? Drag some food to my pot and help me find out!");
+            }
+            else if (idx === 2) {
+                triggerSproutySpeak("Look closer! Tap the leaf to zoom inside my microscopic green world!");
+            }
+            else if (idx === 3) {
+                triggerSproutySpeak("Let's gather ingredients. Start with Water 💧 by tapping the blue droplets below the soil!");
+                setupStage3Water();
+            }
+            else if (idx === 4) {
+                triggerSproutySpeak("Welcome to the Chloroplast Kitchen! Drag Water and Carbon Dioxide into the blender!");
+                setupStage4Blender();
+            }
+            else if (idx === 5) {
+                triggerSproutySpeak("Plants are green because of Chlorophyll! Tap Start Camera to show me something green, or play the sorting game!");
+                setupStage5ColorSearch();
+            }
+            else if (idx === 6) {
+                triggerSproutySpeak("Time for the Master Chef challenge! Assemble my recipe, then show me how you control the stomata!");
+                setupStage6Challenges();
+            }
+            else if (idx === 7) {
+                triggerSproutySpeak("Wow! You did it! You are now a Certified Green Chef! Share this certificate with your friends!");
+                let name = prompt("Enter your name for the certificate:", "Junior Botanist") || "Junior Botanist";
+                nodes.playerCertName.innerText = name;
+                startGraduationCelebration();
+            }
+        }
+
+        /* ================= GAME LAUNCH EVENT ================= */
+        nodes.btnStartGame.addEventListener('click', () => {
+            sound.init();
+            nodes.startOverlay.style.opacity = '0';
+            setTimeout(() => {
+                nodes.startOverlay.style.visibility = 'hidden';
+                nodes.mainContainer.style.display = 'flex';
+                showStage(1);
+            }, 500);
+        });
+
+        // Speech & Audio Toggles
+        nodes.btnToggleVoice.addEventListener('click', () => {
+            speech.enabled = !speech.enabled;
+            nodes.voiceSvg.style.fill = speech.enabled ? 'var(--text-dark)' : '#b0bec5';
+            sound.playPop();
+        });
+
+        nodes.btnToggleSound.addEventListener('click', () => {
+            sound.muted = !sound.muted;
+            nodes.soundSvg.style.fill = !sound.muted ? 'var(--text-dark)' : '#b0bec5';
+            if (!sound.muted) {
+                sound.init();
+                sound.playPop();
+            }
+        });
+
+
+        /* ================= STAGE 1: CURIOSITY LOGIC ================= */
+        const dragItems = document.querySelectorAll('.food-item');
+        const characterContainer = document.querySelector('.character-container');
+        const potMouth = document.getElementById('pot-mouth');
+
+        dragItems.forEach(item => {
+            item.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('text/plain', e.currentTarget.id);
+                sound.playPop();
+            });
+            
+            // Mobile Touch Support
+            item.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                let touch = e.touches[0];
+                item.style.position = 'fixed';
+                item.style.left = (touch.clientX - 45) + 'px';
+                item.style.top = (touch.clientY - 45) + 'px';
+                item.style.zIndex = '999';
+            });
+
+            item.addEventListener('touchend', (e) => {
+                item.style.position = '';
+                item.style.left = '';
+                item.style.top = '';
+                item.style.zIndex = '';
+                
+                let touch = e.changedTouches[0];
+                let elemBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+                if (elemBelow && elemBelow.closest('.character-container')) {
+                    handleFoodDrop(item.id);
+                }
+            });
+        });
+
+        characterContainer.addEventListener('dragover', (e) => {
+            e.preventDefault();
+        });
+
+        characterContainer.addEventListener('drop', (e) => {
+            e.preventDefault();
+            const itemId = e.dataTransfer.getData('text/plain');
+            handleFoodDrop(itemId);
+        });
+
+        function handleFoodDrop(id) {
+            if (id === 'drag-burger' || id === 'drag-apple') {
+                potMouth.setAttribute('d', 'M 90 148 Q 100 138 110 148'); // Sad/Disgusted face
+                sound.playError();
+                triggerSproutySpeak("Oh no! I don't have a mouth or stomach! I cannot eat human food. Try another ingredient!");
+                setTimeout(() => {
+                    potMouth.setAttribute('d', 'M 92 150 Q 100 158 108 150'); // Back to happy
+                }, 3000);
+            } else if (id === 'drag-water' || id === 'drag-sunlight') {
+                addStars(5);
+                potMouth.setAttribute('d', 'M 90 150 Q 100 166 110 150'); // Big happy smile
+                triggerSproutySpeak(`Ah, ${id.includes('water') ? 'Water' : 'Sunlight'}! I love this. But how do I convert it into food? Let's zoom into my leaf to find out!`);
+                document.getElementById('btn-goto-2').style.display = 'block';
+                document.getElementById('btn-goto-2').classList.add('bounce');
+                setTimeout(() => {
+                    potMouth.setAttribute('d', 'M 92 150 Q 100 158 108 150');
+                }, 3000);
+            }
+        }
+
+        document.getElementById('btn-goto-2').addEventListener('click', () => {
+            sound.playPop();
+            showStage(2);
+        });
+
+
+        /* ================= STAGE 2: ZOOM EXPLORER LOGIC ================= */
+        const zoomGuideBtn = document.getElementById('zoom-guide-btn');
+        const leafSvg = document.getElementById('leaf-svg');
+        const leafLayer = document.getElementById('leaf-layer');
+        const microLayer = document.getElementById('micro-layer');
+
+        zoomGuideBtn.addEventListener('click', () => {
+            sound.playPowerUp();
+            zoomGuideBtn.style.display = 'none';
+            
+            // Zoom animation via CSS scale & translation
+            leafLayer.style.transition = 'transform 1.2s ease-in-out, opacity 0.8s';
+            leafLayer.style.transform = 'scale(5) translate(-100px, -50px)';
+            leafLayer.style.opacity = '0';
+            
+            setTimeout(() => {
+                microLayer.setAttribute('opacity', '1');
+                microLayer.setAttribute('transform', 'translate(0,0)');
+                addStars(5);
+                triggerSproutySpeak("Amazing! We zoomed inside the leaf cell. Tap on the Stomata pore to breathe, or click on the Chloroplast chef!");
+            }, 1000);
+        });
+
+        // Stomata Interaction inside Stage 2
+        let stomataStage2Open = true;
+        document.getElementById('stomata-interactive').addEventListener('click', () => {
+            stomataStage2Open = !stomataStage2Open;
+            sound.playPop();
+            
+            const pore = document.getElementById('stoma-pore');
+            const guardL = document.getElementById('guard-l');
+            const guardR = document.getElementById('guard-r');
+            
+            if (stomataStage2Open) {
+                pore.setAttribute('rx', '5');
+                guardL.setAttribute('d', 'M -5 -60 Q -40 0 -5 60 Q -15 0 -5 -60');
+                guardR.setAttribute('d', 'M 5 -60 Q 40 0 5 60 Q 15 0 5 -60');
+                triggerSproutySpeak("This is a Stoma (mouth)! It opens up to breathe in Carbon Dioxide and breathe out Oxygen!");
+            } else {
+                pore.setAttribute('rx', '0');
+                guardL.setAttribute('d', 'M 0 -60 Q -15 0 0 60 Q -5 0 0 -60');
+                guardR.setAttribute('d', 'M 0 -60 Q 15 0 0 60 Q 5 0 0 -60');
+                triggerSproutySpeak("The stomata closed! Plants close their stomata during hot periods to save water!");
+            }
+            checkStage2Finished();
+        });
+
+        let clickedChloroplast = false;
+        document.getElementById('chloroplast-interact').addEventListener('click', () => {
+            clickedChloroplast = true;
+            sound.playSparkle();
+            triggerSproutySpeak("Welcome to the Chloroplast! This is my food-making kitchen! Let's help gather ingredients!");
+            checkStage2Finished();
+        });
+
+        function checkStage2Finished() {
+            if (clickedChloroplast) {
+                document.getElementById('btn-goto-3').style.display = 'block';
+                document.getElementById('btn-goto-3').classList.add('bounce');
+            }
+        }
+
+        document.getElementById('btn-goto-3').addEventListener('click', () => {
+            sound.playPop();
+            showStage(3);
+        });
+
+
+        /* ================= STAGE 3: GATHERING LOGIC ================= */
+        // Tab Nav logic
+        const tabs = ['water', 'co2', 'light'];
+        tabs.forEach(tab => {
+            document.getElementById(`tab-btn-${tab}`).addEventListener('click', (e) => {
+                sound.playPop();
+                switchTab(tab);
+            });
+        });
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            document.getElementById(`tab-btn-${tabName}`).classList.add('active');
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+            
+            if (tabName === 'water') {
+                triggerSproutySpeak("Help guide water from the soil up the roots! Tap all 5 blue water droplets!");
+            } else if (tabName === 'co2') {
+                triggerSproutySpeak("Tap the floating Carbon Dioxide bubbles in the air to guide them through the stomata!");
+                setupStage3CO2();
+            } else if (tabName === 'light') {
+                triggerSproutySpeak("Tap the golden Sunlight rays to charge the chloroplast solar panels!");
+                setupStage3Sunlight();
+            }
+        }
+
+        // 1. Water Drop Spawner
+        function setupStage3Water() {
+            const rootBoard = document.getElementById('roots-interactive-board');
+            // Clean previous drops
+            rootBoard.querySelectorAll('.water-drop-collectible').forEach(d => d.remove());
+            
+            const dropCoordinates = [
+                {x: 80, y: 220}, {x: 180, y: 240}, {x: 300, y: 260},
+                {x: 420, y: 230}, {x: 500, y: 190}
+            ];
+
+            dropCoordinates.forEach((coord, index) => {
+                let drop = document.createElement('div');
+                drop.className = 'water-drop-collectible';
+                drop.style.left = coord.x + 'px';
+                drop.style.top = coord.y + 'px';
+                drop.innerHTML = `<svg viewBox="0 0 24 24" width="100%" height="100%"><path fill="#fff" d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>`;
+                
+                drop.addEventListener('click', () => {
+                    sound.playPop();
+                    drop.style.pointerEvents = 'none';
+                    
+                    // Determine which root branch path to animate along
+                    let pathId = 'root-path-2';
+                    if (coord.x < 200) pathId = 'root-path-1';
+                    else if (coord.x > 400) pathId = 'root-path-3';
+                    
+                    animateDropUpRoot(drop, pathId, () => {
+                        gameState.gatheredWater++;
+                        document.getElementById('gathered-water-count').innerText = gameState.gatheredWater;
+                        addStars(2);
+                        
+                        if (gameState.gatheredWater >= 5) {
+                            gameState.stage3CompletedTabs.water = true;
+                            document.getElementById('tab-btn-water').classList.add('completed');
+                            triggerSproutySpeak("Super! Water has traveled up the roots to the kitchen! Now let's gather Carbon Dioxide!");
+                            setTimeout(() => switchTab('co2'), 2000);
+                        }
+                    });
+                });
+                rootBoard.appendChild(drop);
+            });
+        }
+
+        function animateDropUpRoot(drop, pathId, onComplete) {
+            const path = document.getElementById(pathId);
+            const pathLen = path.getTotalLength();
+            let progress = 0;
+            
+            function step() {
+                progress += 0.05;
+                if (progress >= 1) {
+                    drop.remove();
+                    onComplete();
+                } else {
+                    // Travel reverse from end of path back to root base (300, 100)
+                    let point = path.getPointAtLength(pathLen * (1 - progress));
+                    drop.style.left = (point.x - 22) + 'px';
+                    drop.style.top = (point.y - 22) + 'px';
+                    requestAnimationFrame(step);
+                }
+            }
+            step();
+        }
+
+        // 2. CO2 Spawner
+        function setupStage3CO2() {
+            const airBoard = document.getElementById('air-co2-board');
+            airBoard.innerHTML = '';
+            
+            for (let i = 0; i < 5; i++) {
+                let bubble = document.createElement('div');
+                bubble.className = 'co2-molecule-bubble';
+                bubble.style.left = (50 + Math.random() * 550) + 'px';
+                bubble.style.top = (50 + Math.random() * 200) + 'px';
+                bubble.innerHTML = `<span style="font-size:0.75rem; color:#37474f;">CO2</span>`;
+                
+                // Eyeballs for CO2 bubble
+                let eyes = document.createElement('div');
+                eyes.style.display = 'flex';
+                eyes.style.gap = '8px';
+                eyes.innerHTML = `<div style="width:4px;height:4px;background:#000;border-radius:50%"></div><div style="width:4px;height:4px;background:#000;border-radius:50%"></div>`;
+                bubble.appendChild(eyes);
+
+                bubble.addEventListener('click', () => {
+                    sound.playPop();
+                    bubble.style.pointerEvents = 'none';
+                    
+                    // Animate sucking into center (representing leaf stomata absorption)
+                    bubble.style.transition = 'all 0.6s cubic-bezier(0.55, 0.055, 0.675, 0.19)';
+                    bubble.style.left = '300px';
+                    bubble.style.top = '280px';
+                    bubble.style.transform = 'scale(0.1)';
+                    bubble.style.opacity = '0';
+                    
+                    setTimeout(() => {
+                        bubble.remove();
+                        gameState.gatheredCO2++;
+                        document.getElementById('gathered-co2-count').innerText = gameState.gatheredCO2;
+                        addStars(2);
+                        
+                        if (gameState.gatheredCO2 >= 5) {
+                            gameState.stage3CompletedTabs.co2 = true;
+                            document.getElementById('tab-btn-co2').classList.add('completed');
+                            triggerSproutySpeak("Wonderful! The stomata absorbed CO2! Finally, let's catch some Sunlight energy!");
+                            setTimeout(() => switchTab('light'), 2000);
+                        }
+                    }, 600);
+                });
+
+                airBoard.appendChild(bubble);
+            }
+        }
+
+        // 3. Sunlight Spawner
+        function setupStage3Sunlight() {
+            const board = document.getElementById('sun-ray-board');
+            // Clean old rays
+            board.querySelectorAll('.sunlight-ray').forEach(r => r.remove());
+
+            function spawnRay() {
+                if (gameState.solarEnergy >= 100 || gameState.currentStage !== 3) return;
+                
+                let ray = document.createElement('div');
+                ray.className = 'sunlight-ray';
+                ray.style.left = (50 + Math.random() * 400) + 'px';
+                ray.style.top = (50 + Math.random() * 200) + 'px';
+                
+                ray.addEventListener('click', () => {
+                    sound.playPowerUp();
+                    ray.remove();
+                    gameState.solarEnergy = Math.min(100, gameState.solarEnergy + 20);
+                    
+                    document.getElementById('energy-percentage').innerText = gameState.solarEnergy + '%';
+                    document.getElementById('energy-bar').style.height = gameState.solarEnergy + '%';
+                    addStars(2);
+                    
+                    if (gameState.solarEnergy >= 100) {
+                        gameState.stage3CompletedTabs.light = true;
+                        document.getElementById('tab-btn-light').classList.add('completed');
+                        triggerSproutySpeak("Excellent! We have solar power, water, and CO2! The kitchen is fully stocked! Let's go to the Cooking Lab!");
+                        document.getElementById('btn-goto-4').style.display = 'block';
+                        document.getElementById('btn-goto-4').classList.add('bounce');
+                    } else {
+                        spawnRay();
+                    }
+                });
+                
+                board.appendChild(ray);
+                
+                // Despawn after 3s if not clicked
+                setTimeout(() => {
+                    if (ray.parentElement) {
+                        ray.remove();
+                        spawnRay();
+                    }
+                }, 3000);
+            }
+
+            for (let i = 0; i < 3; i++) {
+                spawnRay();
+            }
+        }
+
+        document.getElementById('btn-goto-4').addEventListener('click', () => {
+            sound.playPop();
+            showStage(4);
+        });
+
+
+        /* ================= STAGE 4: COOKING LAB LOGIC ================= */
+        function setupStage4Blender() {
+            const waterShelf = document.getElementById('shelf-water');
+            const co2Shelf = document.getElementById('shelf-co2');
+            const waterSlot = document.getElementById('slot-water');
+            const co2Slot = document.getElementById('slot-co2');
+            
+            gameState.blenderContent.water = false;
+            gameState.blenderContent.co2 = false;
+            waterSlot.className = 'pot-slot';
+            waterSlot.innerText = 'H2O Slot';
+            co2Slot.className = 'pot-slot';
+            co2Slot.innerText = 'CO2 Slot';
+            document.getElementById('btn-cook-action').style.display = 'none';
+            document.getElementById('outputs-box').style.display = 'none';
+            gameState.collectedGlucose = false;
+            gameState.collectedOxygen = false;
+
+            // Setup drag events for blender ingredients
+            const shelfItems = [waterShelf, co2Shelf];
+            shelfItems.forEach(item => {
+                item.addEventListener('dragstart', (e) => {
+                    e.dataTransfer.setData('text/plain', e.currentTarget.id);
+                    sound.playPop();
+                });
+                
+                // Mobile Touch Support
+                item.addEventListener('touchmove', (e) => {
+                    e.preventDefault();
+                    let touch = e.touches[0];
+                    item.style.position = 'fixed';
+                    item.style.left = (touch.clientX - 45) + 'px';
+                    item.style.top = (touch.clientY - 45) + 'px';
+                    item.style.zIndex = '999';
+                });
+
+                item.addEventListener('touchend', (e) => {
+                    item.style.position = '';
+                    item.style.left = '';
+                    item.style.top = '';
+                    item.style.zIndex = '';
+                    
+                    let touch = e.changedTouches[0];
+                    let elemBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+                    if (elemBelow) {
+                        let targetSlot = elemBelow.closest('.pot-slot');
+                        if (targetSlot) {
+                            handleIngredientDrop(item.id, targetSlot.id);
+                        }
+                    }
+                });
+            });
+
+            // Target Drop Slots
+            const slots = [waterSlot, co2Slot];
+            slots.forEach(slot => {
+                slot.addEventListener('dragover', (e) => e.preventDefault());
+                slot.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    const itemId = e.dataTransfer.getData('text/plain');
+                    handleIngredientDrop(itemId, slot.id);
+                });
+            });
+        }
+
+        function handleIngredientDrop(itemId, slotId) {
+            if (itemId === 'shelf-water' && slotId === 'slot-water') {
+                gameState.blenderContent.water = true;
+                const slot = document.getElementById('slot-water');
+                slot.classList.add('filled');
+                slot.innerText = '💧 Water In!';
+                sound.playSuccess();
+                checkBlenderReady();
+            } else if (itemId === 'shelf-co2' && slotId === 'slot-co2') {
+                gameState.blenderContent.co2 = true;
+                const slot = document.getElementById('slot-co2');
+                slot.classList.add('filled');
+                slot.innerText = '☁️ CO2 In!';
+                sound.playSuccess();
+                checkBlenderReady();
+            } else {
+                sound.playError();
+                triggerSproutySpeak("Whoops! Drag the water molecule into the H2O slot and the CO2 molecule into the CO2 slot!");
+            }
+        }
+
+        function checkBlenderReady() {
+            if (gameState.blenderContent.water && gameState.blenderContent.co2) {
+                document.getElementById('btn-cook-action').style.display = 'block';
+                document.getElementById('btn-cook-action').classList.add('bounce');
+                triggerSproutySpeak("Everything is loaded! Press the button to start cooking with Solar energy!");
+            }
+        }
+
+        // Cook Button Action
+        document.getElementById('btn-cook-action').addEventListener('click', () => {
+            document.getElementById('btn-cook-action').style.display = 'none';
+            sound.playPowerUp();
+            
+            // Play cooking vibration/animation
+            const pot = document.querySelector('.cooking-pot-container');
+            pot.style.animation = 'bounce 0.2s infinite alternate';
+            
+            // Loop sound
+            let cookTimer = setInterval(() => {
+                sound.playSparkle();
+            }, 300);
+
+            setTimeout(() => {
+                clearInterval(cookTimer);
+                pot.style.animation = '';
+                addStars(10);
+                
+                // Hide inputs
+                document.getElementById('slot-water').classList.remove('filled');
+                document.getElementById('slot-water').innerText = 'H2O Slot';
+                document.getElementById('slot-co2').classList.remove('filled');
+                document.getElementById('slot-co2').innerText = 'CO2 Slot';
+                
+                // Show outputs
+                document.getElementById('outputs-box').style.display = 'flex';
+                triggerSproutySpeak("Success! The chemical reaction cooked Glucose (Food) and Oxygen (Fresh Air)! Tap on them to harvest!");
+            }, 2500);
+        });
+
+        // Collect outputs
+        document.getElementById('click-collect-glucose').addEventListener('click', () => {
+            if (gameState.collectedGlucose) return;
+            gameState.collectedGlucose = true;
+            document.getElementById('click-collect-glucose').style.opacity = '0.5';
+            addStars(5);
+            triggerSproutySpeak("Yum! Glucose is sweet sugar energy that helps me grow tall and strong!");
+            checkStage4Complete();
+        });
+
+        document.getElementById('click-collect-oxygen').addEventListener('click', () => {
+            if (gameState.collectedOxygen) return;
+            gameState.collectedOxygen = true;
+            document.getElementById('click-collect-oxygen').style.opacity = '0.5';
+            addStars(5);
+            triggerSproutySpeak("Ahhh! Fresh Oxygen (O2) is released into the atmosphere for humans and animals to breathe!");
+            checkStage4Complete();
+        });
+
+        function checkStage4Complete() {
+            if (gameState.collectedGlucose && gameState.collectedOxygen) {
+                document.getElementById('btn-goto-5').style.display = 'block';
+                document.getElementById('btn-goto-5').classList.add('bounce');
+            }
+        }
+
+        document.getElementById('btn-goto-5').addEventListener('click', () => {
+            sound.playPop();
+            showStage(5);
+        });
+
+
+        /* ================= STAGE 5: COLOR SEARCH LOGIC ================= */
+        let webcamColorInterval = null;
+
+        function setupStage5ColorSearch() {
+            document.getElementById('btn-enable-camera').addEventListener('click', initWebcam);
+            document.getElementById('btn-skip-camera').addEventListener('click', startFallbackSorting);
+            document.getElementById('btn-goto-6').style.display = 'none';
+        }
+
+        async function initWebcam() {
+            const video = document.getElementById('webcam-video');
+            const previewBox = document.getElementById('webcam-preview-box');
+            
+            document.getElementById('camera-status-label').innerText = "Requesting webcam access...";
+            sound.playPop();
+
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+                gameState.webcamStream = stream;
+                video.srcObject = stream;
+                video.style.display = "block";
+                previewBox.style.display = "block";
+                gameState.webcamActive = true;
+                
+                document.getElementById('camera-status-label').innerText = "Hold up something GREEN! 🌿";
+                triggerSproutySpeak("I see you! Place something green in front of the lens target area!");
+                
+                // Color analyzing loops
+                startColorAnalyzing();
+            } catch (err) {
+                console.error("Webcam blocked or not available:", err);
+                document.getElementById('camera-status-label').innerText = "Camera not detected. Launching Sorting Game!";
+                startFallbackSorting();
+            }
+        }
+
+        function startColorAnalyzing() {
+            const video = document.getElementById('webcam-video');
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const progressBar = document.getElementById('green-progress-bar');
+            let detectionStrength = 0;
+
+            webcamColorInterval = setInterval(() => {
+                if (!gameState.webcamActive) return;
+                
+                canvas.width = video.videoWidth || 320;
+                canvas.height = video.videoHeight || 240;
+                
+                if (canvas.width === 0) return;
+                
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                
+                // Sample center pixels
+                const sampleSize = 80;
+                const sampleX = Math.floor((canvas.width - sampleSize) / 2);
+                const sampleY = Math.floor((canvas.height - sampleSize) / 2);
+                
+                const imgData = ctx.getImageData(sampleX, sampleY, sampleSize, sampleSize);
+                const data = imgData.data;
+                
+                let greenCount = 0;
+                let totalPixels = data.length / 4;
+
+                for (let i = 0; i < data.length; i += 4) {
+                    let r = data[i];
+                    let g = data[i+1];
+                    let b = data[i+2];
+                    
+                    // Simple Green color heuristic (Green is stronger than Red & Blue by margin)
+                    if (g > r + 30 && g > b + 30) {
+                        greenCount++;
+                    }
+                }
+
+                let ratio = greenCount / totalPixels;
+                
+                if (ratio > 0.15) { // Threshold met
+                    detectionStrength = Math.min(100, detectionStrength + 15);
+                } else {
+                    detectionStrength = Math.max(0, detectionStrength - 10);
+                }
+
+                progressBar.style.width = detectionStrength + '%';
+
+                if (detectionStrength >= 100) {
+                    clearInterval(webcamColorInterval);
+                    stopWebcamStream();
+                    addStars(15);
+                    document.getElementById('camera-status-label').innerText = "Green Detected! Incredible! 🎉";
+                    triggerSproutySpeak("Wonderful! That green color comes from Chlorophyll! It captures solar rays to cook food. Let's head to our final challenges!");
+                    document.getElementById('btn-goto-6').style.display = 'block';
+                    document.getElementById('btn-goto-6').classList.add('bounce');
+                }
+            }, 150);
+        }
+
+        function stopWebcamStream() {
+            gameState.webcamActive = false;
+            if (gameState.webcamStream) {
+                gameState.webcamStream.getTracks().forEach(track => track.stop());
+            }
+        }
+
+        // Fallback Chlorophyll Sorting Game
+        function startFallbackSorting() {
+            stopWebcamStream();
+            document.getElementById('webcam-preview-box').style.display = 'none';
+            document.getElementById('webcam-dashboard').style.display = 'none';
+            
+            const fallbackBoard = document.getElementById('camera-fallback-board');
+            fallbackBoard.style.display = "flex";
+            triggerSproutySpeak("Let's sort! Drag green plant parts containing Chlorophyll into the green jar, and others into the trash!");
+            
+            setupFallbackDragEvents();
+        }
+
+        function setupFallbackDragEvents() {
+            const items = document.querySelectorAll('.fallback-item');
+            const jar = document.getElementById('bucket-chlorophyll');
+            const recycle = document.getElementById('bucket-normal');
+
+            items.forEach(item => {
+                item.addEventListener('dragstart', (e) => {
+                    e.dataTransfer.setData('text/plain', e.currentTarget.id);
+                    sound.playPop();
+                });
+                
+                // Mobile Touch Support
+                item.addEventListener('touchmove', (e) => {
+                    e.preventDefault();
+                    let touch = e.touches[0];
+                    item.style.position = 'fixed';
+                    item.style.left = (touch.clientX - 40) + 'px';
+                    item.style.top = (touch.clientY - 40) + 'px';
+                    item.style.zIndex = '999';
+                });
+
+                item.addEventListener('touchend', (e) => {
+                    item.style.position = '';
+                    item.style.left = '';
+                    item.style.top = '';
+                    item.style.zIndex = '';
+                    
+                    let touch = e.changedTouches[0];
+                    let elemBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+                    if (elemBelow) {
+                        let bucket = elemBelow.closest('.fallback-bucket');
+                        if (bucket) {
+                            handleFallbackDrop(item.id, bucket.id);
+                        }
+                    }
+                });
+            });
+
+            [jar, recycle].forEach(bucket => {
+                bucket.addEventListener('dragover', (e) => e.preventDefault());
+                bucket.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    const itemId = e.dataTransfer.getData('text/plain');
+                    handleFallbackDrop(itemId, bucket.id);
+                });
+            });
+        }
+
+        function handleFallbackDrop(itemId, bucketId) {
+            const item = document.getElementById(itemId);
+            const isGreen = itemId.includes('green');
+
+            if ((isGreen && bucketId === 'bucket-chlorophyll') || (!isGreen && bucketId === 'bucket-normal')) {
+                addStars(3);
+                item.style.display = 'none';
+                
+                gameState.sortingScores[itemId.replace('item-', '')] = true;
+                
+                // Check if all sorted
+                let allDone = Object.values(gameState.sortingScores).every(val => val === true);
+                if (allDone) {
+                    addStars(10);
+                    triggerSproutySpeak("Brilliant! Leaves, frogs, and grass are green! Chlorophyll captures sunlight to activate the leaf kitchen. Let's take the final quiz!");
+                    document.getElementById('btn-goto-6').style.display = 'block';
+                    document.getElementById('btn-goto-6').classList.add('bounce');
+                } else {
+                    triggerSproutySpeak("Good job! Keep sorting the remaining items!");
+                }
+            } else {
+                sound.playError();
+                triggerSproutySpeak("Oops! Remember, only green plant structures containing Chlorophyll go into the Green Jar!");
+            }
+        }
+
+        document.getElementById('btn-goto-6').addEventListener('click', () => {
+            clearInterval(webcamColorInterval);
+            stopWebcamStream();
+            sound.playPop();
+            showStage(6);
+        });
+
+
+        /* ================= STAGE 6: CHALLENGE & SIM LOGIC ================= */
+        function setupStage6Challenges() {
+            setupEquationDragEvents();
+            setupStomataSim();
+            document.getElementById('btn-goto-7').style.display = 'none';
+        }
+
+        // 1. Equation Builder drag/drop
+        function setupEquationDragEvents() {
+            const dragItems = document.querySelectorAll('.eq-drag-item');
+            const slots = document.querySelectorAll('.eq-slot');
+
+            dragItems.forEach(item => {
+                item.addEventListener('dragstart', (e) => {
+                    e.dataTransfer.setData('text/plain', e.currentTarget.id);
+                    sound.playPop();
+                });
+                
+                // Mobile Touch Support
+                item.addEventListener('touchmove', (e) => {
+                    e.preventDefault();
+                    let touch = e.touches[0];
+                    item.style.position = 'fixed';
+                    item.style.left = (touch.clientX - 60) + 'px';
+                    item.style.top = (touch.clientY - 30) + 'px';
+                    item.style.zIndex = '999';
+                });
+
+                item.addEventListener('touchend', (e) => {
+                    item.style.position = '';
+                    item.style.left = '';
+                    item.style.top = '';
+                    item.style.zIndex = '';
+                    
+                    let touch = e.changedTouches[0];
+                    let elemBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+                    if (elemBelow) {
+                        let slot = elemBelow.closest('.eq-slot');
+                        if (slot) {
+                            handleEquationDrop(item.id, slot.id);
+                        }
+                    }
+                });
+            });
+
+            slots.forEach(slot => {
+                slot.addEventListener('dragover', (e) => e.preventDefault());
+                slot.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    const itemId = e.dataTransfer.getData('text/plain');
+                    handleEquationDrop(itemId, slot.id);
+                });
+            });
+        }
+
+        function handleEquationDrop(itemId, slotId) {
+            const item = document.getElementById(itemId);
+            const slot = document.getElementById(slotId);
+            const expectedText = slot.getAttribute('data-answer');
+            const itemText = item.innerText;
+
+            // Matching Logic (e.g. Water slot can accept Water, Glucose slot accepts Glucose)
+            let isMatch = false;
+            if (expectedText === "Water" && itemText === "Water") isMatch = true;
+            if (expectedText === "Carbon Dioxide" && itemText === "Carbon Dioxide") isMatch = true;
+            if (expectedText === "Glucose" && itemText === "Glucose") isMatch = true;
+            if (expectedText === "Oxygen" && itemText === "Oxygen") isMatch = true;
+
+            if (isMatch) {
+                addStars(5);
+                slot.classList.add('correct');
+                slot.innerText = itemText;
+                item.style.display = 'none';
+                sound.playSuccess();
+                checkEquationComplete();
+            } else {
+                sound.playError();
+                triggerSproutySpeak("Nope! That ingredient doesn't fit in this step of the recipe. Check the ingredients again!");
+            }
+        }
+
+        function checkEquationComplete() {
+            const slots = document.querySelectorAll('.eq-slot');
+            let allCorrect = Array.from(slots).every(slot => slot.classList.contains('correct'));
+            if (allCorrect) {
+                triggerSproutySpeak("Awesome! You formulated: Water + Carbon Dioxide -> Glucose + Oxygen! Now complete the Stomata weather simulator!");
+                checkStage6Finished();
+            }
+        }
+
+        // 2. Stomata weather controller simulation
+        function setupStomataSim() {
+            const weatherCool = document.getElementById('weather-cool');
+            const weatherHot = document.getElementById('weather-hot');
+            const stomaControl = document.getElementById('interactive-stoma-control');
+            const simStatus = document.getElementById('sim-stoma-status');
+
+            weatherCool.addEventListener('click', () => {
+                sound.playPop();
+                gameState.weatherState = 'cool';
+                weatherCool.classList.add('active');
+                weatherHot.classList.remove('active');
+                document.getElementById('stomata-simulation-view').style.background = '#e8f5e9'; // Cool green
+                checkWeatherAlignment();
+            });
+
+            weatherHot.addEventListener('click', () => {
+                sound.playPop();
+                gameState.weatherState = 'hot';
+                weatherHot.classList.add('active');
+                weatherCool.classList.remove('active');
+                document.getElementById('stomata-simulation-view').style.background = '#ffe0b2'; // Warm orange
+                checkWeatherAlignment();
+            });
+
+            stomaControl.addEventListener('click', () => {
+                sound.playPop();
+                gameState.stomataState = (gameState.stomataState === 'open') ? 'closed' : 'open';
+                
+                const pore = document.getElementById('sim-pore');
+                const guardL = document.getElementById('sim-guard-l');
+                const guardR = document.getElementById('sim-guard-r');
+                
+                if (gameState.stomataState === 'open') {
+                    pore.setAttribute('rx', '4');
+                    guardL.setAttribute('d', 'M 45 10 Q 15 50 45 90 Q 30 50 45 10');
+                    guardR.setAttribute('d', 'M 55 10 Q 85 50 55 90 Q 70 50 55 10');
+                    simStatus.innerText = "Stomata is currently: OPEN";
+                } else {
+                    pore.setAttribute('rx', '0');
+                    guardL.setAttribute('d', 'M 50 10 Q 35 50 50 90 Q 45 50 50 10');
+                    guardR.setAttribute('d', 'M 50 10 Q 65 50 50 90 Q 55 50 50 10');
+                    simStatus.innerText = "Stomata is currently: CLOSED";
+                }
+                checkWeatherAlignment();
+            });
+        }
+
+        function checkWeatherAlignment() {
+            let correct = false;
+            if (gameState.weatherState === 'hot' && gameState.stomataState === 'closed') {
+                correct = true;
+                triggerSproutySpeak("Superb! You CLOSED the stomata on a hot, sunny day to prevent the water inside me from evaporating!");
+            } else if (gameState.weatherState === 'cool' && gameState.stomataState === 'open') {
+                correct = true;
+                triggerSproutySpeak("Nice! Under cool conditions, we keep the stomata OPEN to absorb Carbon Dioxide for cooking!");
+            } else {
+                if (gameState.weatherState === 'hot') {
+                    triggerSproutySpeak("Oh no! The stomata is open on a hot day! The water will evaporate, and Sprouty will wilt! Tap the stomata to close it!");
+                } else {
+                    triggerSproutySpeak("The stomata is closed on a nice day. I can't breathe in CO2 to cook food! Click the stomata to open it!");
+                }
+            }
+
+            if (correct) {
+                gameState.stomataActivityCompleted = true;
+                addStars(5);
+                checkStage6Finished();
+            }
+        }
+
+        function checkStage6Finished() {
+            const equationSlots = document.querySelectorAll('.eq-slot');
+            let eqDone = Array.from(equationSlots).every(slot => slot.classList.contains('correct'));
+            if (eqDone && gameState.stomataActivityCompleted) {
+                document.getElementById('btn-goto-7').style.display = 'block';
+                document.getElementById('btn-goto-7').classList.add('bounce');
+            }
+        }
+
+        document.getElementById('btn-goto-7').addEventListener('click', () => {
+            sound.playPop();
+            showStage(7);
+        });
+
+
+        /* ================= STAGE 7: GRADUATION / CERTIFICATE LOGIC ================= */
+        let celebrationAnimFrame = null;
+        function startGraduationCelebration() {
+            sound.playFanfare();
+            initCelebrationCanvas();
+        }
+
+        function initCelebrationCanvas() {
+            const canvas = nodes.celebrationCanvas;
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            
+            const particles = [];
+            
+            for (let i = 0; i < 150; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height - canvas.height,
+                    size: Math.random() * 8 + 4,
+                    color: `hsl(${Math.random() * 360}, 100%, 50%)`,
+                    speedY: Math.random() * 4 + 2,
+                    speedX: Math.random() * 2 - 1,
+                    rot: Math.random() * 360,
+                    rotSpeed: Math.random() * 4 - 2
+                });
+            }
+
+            function draw() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                particles.forEach(p => {
+                    p.y += p.speedY;
+                    p.x += p.speedX;
+                    p.rot += p.rotSpeed;
+                    
+                    if (p.y > canvas.height) {
+                        p.y = -20;
+                        p.x = Math.random() * canvas.width;
+                    }
+                    
+                    ctx.save();
+                    ctx.translate(p.x, p.y);
+                    ctx.rotate(p.rot * Math.PI / 180);
+                    ctx.fillStyle = p.color;
+                    ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+                    ctx.restore();
+                });
+                
+                celebrationAnimFrame = requestAnimationFrame(draw);
+            }
+            draw();
+        }
+
+        document.getElementById('btn-replay').addEventListener('click', () => {
+            if (celebrationAnimFrame) cancelAnimationFrame(celebrationAnimFrame);
+            
+            // Reset state
+            gameState.stars = 0;
+            gameState.gatheredWater = 0;
+            gameState.gatheredCO2 = 0;
+            gameState.solarEnergy = 0;
+            gameState.stage3CompletedTabs = { water: false, co2: false, light: false };
+            gameState.blenderContent = { water: false, co2: false };
+            gameState.collectedGlucose = false;
+            gameState.collectedOxygen = false;
+            gameState.stomataActivityCompleted = false;
+            gameState.sortingScores = { 'green-leaf': false, 'red-apple': false, 'green-frog': false, 'yellow-banana': false, 'green-grass': false };
+            
+            // Restore fallback items
+            document.querySelectorAll('.fallback-item').forEach(item => {
+                item.style.display = 'flex';
+                document.getElementById('fallback-items-shelf').appendChild(item);
+            });
+            // Restore equation items
+            document.querySelectorAll('.eq-drag-item').forEach(item => {
+                item.style.display = 'block';
+                document.getElementById('eq-drag-items-container').appendChild(item);
+            });
+            // Clear equation slots
+            document.querySelectorAll('.eq-slot').forEach(slot => {
+                slot.classList.remove('correct');
+                slot.innerText = 'Drag Here';
+            });
+            // Reset output displays and opacities
+            document.getElementById('click-collect-glucose').style.opacity = '1';
+            document.getElementById('click-collect-oxygen').style.opacity = '1';
+            document.getElementById('outputs-box').style.display = 'none';
+            
+            // Reset layouts
+            document.getElementById('btn-goto-2').style.display = 'none';
+            document.getElementById('btn-goto-3').style.display = 'none';
+            document.getElementById('btn-goto-4').style.display = 'none';
+            document.getElementById('btn-goto-5').style.display = 'none';
+            document.getElementById('btn-goto-6').style.display = 'none';
+            document.getElementById('btn-goto-7').style.display = 'none';
+            document.getElementById('zoom-guide-btn').style.display = 'block';
+            
+            // Re-render Stages
+            showStage(1);
+        });
+
+
+        /* ================= AMBIENT PARTICLES BACKGROUND ================= */
+        function initAmbientParticles() {
+            const canvas = nodes.particleCanvas;
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            
+            const particles = [];
+            
+            for (let i = 0; i < 40; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    radius: Math.random() * 15 + 5,
+                    color: Math.random() > 0.5 ? 'rgba(76, 175, 80, 0.08)' : 'rgba(255, 235, 59, 0.08)',
+                    speedY: -Math.random() * 0.5 - 0.2,
+                    speedX: Math.random() * 0.4 - 0.2
+                });
+            }
+
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                particles.forEach(p => {
+                    p.y += p.speedY;
+                    p.x += p.speedX;
+                    
+                    if (p.y < -p.radius) {
+                        p.y = canvas.height + p.radius;
+                        p.x = Math.random() * canvas.width;
+                    }
+                    
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = p.color;
+                    ctx.fill();
+                });
+                
+                requestAnimationFrame(animate);
+            }
+            animate();
+        }
+
+        function triggerParticlePulse() {
+            // Trigger rapid upward rising bubbles
+            const canvas = nodes.particleCanvas;
+            const ctx = canvas.getContext('2d');
+            
+            // Draw a temporary splash effect or sparkle in canvas
+        }
+
+        window.addEventListener('resize', () => {
+            nodes.particleCanvas.width = window.innerWidth;
+            nodes.particleCanvas.height = window.innerHeight;
+            nodes.celebrationCanvas.width = window.innerWidth;
+            nodes.celebrationCanvas.height = window.innerHeight;
+        });
+
+        // Initialize particles
+        initAmbientParticles();
+    </script>
+</body>
+</html>

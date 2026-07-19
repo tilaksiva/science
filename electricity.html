@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>Sparky's Circuit City — Electricity &amp; Circuits</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#101B33;
+  --navy-2:#182747;
+  --copper:#C97C43;
+  --copper-light:#E7A968;
+  --spark:#FFD23F;
+  --spark-soft:#FFE79A;
+  --cyan:#4FD9E8;
+  --cream:#FFF8EC;
+  --coral:#FF6B5B;
+  --coral-dark:#E1503F;
+  --green:#49C78A;
+  --ink:#1C2740;
+  --font-display:'Baloo 2','Segoe UI Rounded','Comic Sans MS',sans-serif;
+  --font-body:'Nunito','Segoe UI',sans-serif;
+  --radius:22px;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  min-height:100vh;
+  background:
+    radial-gradient(circle at 20% 10%, #24345c 0%, transparent 45%),
+    radial-gradient(circle at 85% 80%, #1c2b52 0%, transparent 50%),
+    linear-gradient(180deg,var(--navy) 0%, var(--navy-2) 100%);
+  font-family:var(--font-body);
+  color:var(--cream);
+  overflow-x:hidden;
+  -webkit-tap-highlight-color:transparent;
+}
+button{font-family:var(--font-body);cursor:pointer;}
+button:focus-visible, .tappable:focus-visible{outline:3px solid var(--cyan); outline-offset:3px;}
+h1,h2,h3{font-family:var(--font-display); margin:0;}
+.hidden{display:none !important;}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);}
+
+/* stars background */
+#stars{position:fixed;inset:0;z-index:0;pointer-events:none;}
+.twinkle{position:absolute;width:3px;height:3px;background:#fff;border-radius:50%;opacity:.5;animation:tw 3s infinite ease-in-out;}
+@keyframes tw{0%,100%{opacity:.15;}50%{opacity:.9;}}
+
+/* ===== Header ===== */
+#topbar{
+  position:sticky; top:0; z-index:50;
+  display:flex; align-items:center; gap:10px;
+  padding:10px 14px;
+  background:rgba(16,27,51,.85);
+  backdrop-filter:blur(6px);
+  border-bottom:2px solid rgba(255,255,255,.08);
+}
+#homeBtn{
+  background:var(--navy-2); border:2px solid rgba(255,255,255,.15); color:var(--cream);
+  width:40px;height:40px;border-radius:12px;font-size:18px;flex:0 0 auto;
+}
+#progressWrap{flex:1; display:flex; align-items:center; gap:6px; overflow-x:auto; padding:4px 2px;}
+.dot{width:16px;height:16px;border-radius:50%;background:rgba(255,255,255,.15); flex:0 0 auto; border:2px solid rgba(255,255,255,.25); transition:all .3s;}
+.dot.done{background:var(--spark); border-color:var(--spark); box-shadow:0 0 10px var(--spark);}
+.dot.current{background:var(--coral); border-color:var(--coral); transform:scale(1.3); box-shadow:0 0 10px var(--coral);}
+#starCount{display:flex; align-items:center; gap:4px; background:var(--navy-2); border:2px solid rgba(255,255,255,.15); border-radius:14px; padding:6px 12px; font-weight:800; font-family:var(--font-display); flex:0 0 auto;}
+#voiceBtn{
+  background:var(--navy-2); border:2px solid rgba(255,255,255,.15); color:var(--cream);
+  width:40px;height:40px;border-radius:12px;font-size:16px;flex:0 0 auto;
+}
+
+/* ===== Screens ===== */
+main{position:relative; z-index:1; max-width:720px; margin:0 auto; padding:18px 16px 60px;}
+.screen{display:none; animation:fadeUp .5s ease;}
+.screen.active{display:block;}
+@keyframes fadeUp{from{opacity:0; transform:translateY(16px);} to{opacity:1; transform:translateY(0);}}
+
+.card{
+  background:var(--cream); color:var(--ink); border-radius:var(--radius);
+  padding:20px; box-shadow:0 10px 30px rgba(0,0,0,.35);
+  margin-bottom:16px;
+}
+.eyebrow{
+  font-family:var(--font-display); font-weight:700; letter-spacing:.5px;
+  color:var(--spark); text-transform:uppercase; font-size:13px; margin-bottom:6px;
+}
+h2.title{font-size:28px; color:var(--ink); margin-bottom:8px;}
+p.lead{font-size:17px; line-height:1.5; margin:0 0 10px;}
+
+/* ===== Sparky mascot + speech bubble ===== */
+.sparky-row{display:flex; align-items:flex-end; gap:12px; margin:14px 0;}
+.sparky{width:74px;height:74px;flex:0 0 auto;}
+.bubble{
+  background:#fff; border:3px solid var(--navy-2); border-radius:18px 18px 18px 4px;
+  padding:12px 16px; font-size:16px; line-height:1.4; font-weight:700; color:var(--ink);
+  position:relative; flex:1;
+}
+.mouth{transition:transform .15s ease;}
+.talking .mouth{animation:talk .3s infinite alternate;}
+@keyframes talk{from{transform:scaleY(1);} to{transform:scaleY(2.2);}}
+.blink{animation:blink 4s infinite;}
+@keyframes blink{0%,92%,100%{transform:scaleY(1);}96%{transform:scaleY(0.1);}}
+
+/* ===== Buttons ===== */
+.btn{
+  font-family:var(--font-display); font-weight:700; font-size:17px;
+  border:none; border-radius:16px; padding:14px 22px; color:#fff;
+  background:var(--coral); box-shadow:0 5px 0 var(--coral-dark);
+  transition:transform .08s ease;
+}
+.btn:active{transform:translateY(4px); box-shadow:0 1px 0 var(--coral-dark);}
+.btn.secondary{background:var(--navy-2); box-shadow:0 5px 0 #0c1730;}
+.btn.big{width:100%; font-size:20px; padding:18px;}
+.btn-row{display:flex; gap:12px; flex-wrap:wrap; margin-top:14px;}
+.btn:disabled{opacity:.4; box-shadow:none; transform:none;}
+
+/* choice chips */
+.choices{display:grid; gap:10px; margin-top:12px;}
+.choice{
+  text-align:left; background:#fff; border:3px solid #e4dcc9; border-radius:14px;
+  padding:14px 16px; font-weight:700; font-size:16px; color:var(--ink);
+}
+.choice:hover{border-color:var(--copper);}
+.choice.correct{background:#e6f9ef; border-color:var(--green); color:#1c6b45;}
+.choice.wrong{background:#fdeceb; border-color:var(--coral); color:#a3372a;}
+
+/* ===== Circuit diagram ===== */
+.circuit-wrap{background:var(--navy); border-radius:18px; padding:10px; margin:14px 0;}
+#circuitSvg{width:100%; height:auto; display:block;}
+.wireFixed{stroke:var(--copper); stroke-width:6; fill:none; stroke-linecap:round; stroke-linejoin:round;}
+.wireGap{stroke:#5a4a66; stroke-width:5; fill:none; stroke-linecap:round; stroke-dasharray:6 8; cursor:pointer;}
+.wireGap.filled{stroke:var(--copper); stroke-dasharray:none;}
+.switchLever{stroke:var(--spark); stroke-width:6; stroke-linecap:round; cursor:pointer; transform-origin:300px 230px; transition:transform .25s ease;}
+.contactDot{fill:var(--copper-light);}
+.bulbGlass{fill:#3a2f52; stroke:var(--copper-light); stroke-width:3; transition:fill .3s, filter .3s;}
+.bulbGlass.lit{fill:var(--spark); filter:drop-shadow(0 0 18px var(--spark));}
+.bulbFilament{stroke:#8a7fa0; stroke-width:2; fill:none;}
+.bulbFilament.lit{stroke:var(--navy);}
+.batteryBody{fill:var(--navy-2); stroke:var(--copper-light); stroke-width:3;}
+.electron{fill:var(--spark); filter:drop-shadow(0 0 4px var(--spark));}
+.tray{display:flex; align-items:center; gap:14px; margin-top:12px; flex-wrap:wrap;}
+.wirePiece{
+  width:70px; height:34px; border-radius:10px; background:var(--copper); border:3px solid var(--copper-light);
+  cursor:pointer; box-shadow:0 4px 0 #8a5a2c;
+}
+.wirePiece.selected{outline:3px solid var(--cyan); transform:translateY(-3px);}
+.wirePiece.used{opacity:.25; cursor:default;}
+.hint{font-size:14px; color:#6b6350; font-weight:700;}
+
+/* sorting */
+.item-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(100px,1fr)); gap:10px; margin:14px 0;}
+.item{
+  background:#fff; border:3px solid #e4dcc9; border-radius:14px; padding:12px 6px;
+  text-align:center; font-weight:700;
+}
+.item .emoji{font-size:32px; display:block; margin-bottom:4px;}
+.item.correct{border-color:var(--green); background:#e6f9ef;}
+.item.wrong{border-color:var(--coral); background:#fdeceb;}
+.bin-row{display:flex; gap:10px; margin-top:8px;}
+.bin{flex:1; border-radius:14px; padding:14px 8px; text-align:center; font-family:var(--font-display); font-weight:700; border:3px dashed var(--copper);}
+.bin.conductor{background:#fff4e5;}
+.bin.insulator{background:#eef1ff;}
+
+/* matching */
+.match-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin:14px 0;}
+.match-card{
+  aspect-ratio:1/1; background:var(--navy-2); border-radius:12px; display:flex; align-items:center; justify-content:center;
+  font-size:26px; cursor:pointer; border:3px solid rgba(255,255,255,.15); color:#fff;
+}
+.match-card.flipped{background:#fff; color:var(--ink);}
+.match-card.locked{background:#e6f9ef; color:#1c6b45; border-color:var(--green); cursor:default;}
+
+/* progress fill inside card */
+.fill-track{background:#eee2cc; border-radius:10px; height:16px; overflow:hidden; margin-top:8px;}
+.fill-bar{background:var(--green); height:100%; width:0%; transition:width .4s ease;}
+
+/* checklist for real world */
+.checklist{display:grid; gap:10px; margin-top:10px;}
+.check-item{display:flex; gap:10px; align-items:flex-start; background:#fff; border:3px solid #e4dcc9; border-radius:14px; padding:12px 14px; font-weight:700;}
+.check-item input{width:22px;height:22px; margin-top:2px; flex:0 0 auto;}
+
+/* confetti */
+#confettiLayer{position:fixed; inset:0; pointer-events:none; z-index:200; overflow:hidden;}
+.confetto{position:absolute; top:-20px; width:10px; height:14px; opacity:.9; animation:fall linear forwards;}
+@keyframes fall{to{transform:translateY(110vh) rotate(540deg); opacity:0;}}
+
+/* badge / certificate */
+.certificate{background:linear-gradient(135deg,#fff8ec,#ffe9c4); border:4px solid var(--copper); border-radius:20px; padding:22px; text-align:center;}
+.certificate h3{font-size:24px; color:var(--copper-light);}
+.cert-name{font-size:20px; font-weight:800; color:var(--ink); margin:10px 0;}
+
+@media (max-width:420px){
+  h2.title{font-size:23px;}
+  .match-grid{grid-template-columns:repeat(4,1fr);}
+}
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important;}
+}
+</style>
+</head>
+<body>
+
+<div id="stars"></div>
+<div id="confettiLayer"></div>
+
+<div id="topbar">
+  <button id="homeBtn" title="Restart from beginning" aria-label="Home">🏠</button>
+  <div id="progressWrap" role="list" aria-label="Lesson progress"></div>
+  <div id="starCount">⭐ <span id="starNum">0</span></div>
+  <button id="voiceBtn" title="Toggle Sparky's voice" aria-label="Toggle voice">🔊</button>
+</div>
+
+<main>
+
+  <!-- ================= SCREEN 0: TITLE ================= -->
+  <section class="screen active" id="screen-title">
+    <div class="card" style="text-align:center;">
+      <svg viewBox="0 0 200 200" style="width:140px;margin:0 auto;display:block;" aria-hidden="true">
+        <circle cx="100" cy="100" r="80" fill="#FFE79A"/>
+        <circle cx="100" cy="100" r="80" fill="none" stroke="#FFD23F" stroke-width="6"/>
+        <circle cx="70" cy="90" r="10" fill="#1C2740" class="blink"/>
+        <circle cx="130" cy="90" r="10" fill="#1C2740" class="blink"/>
+        <path d="M75,130 Q100,150 125,130" stroke="#1C2740" stroke-width="6" fill="none" stroke-linecap="round"/>
+        <path d="M100,20 L85,60 L105,60 L90,100 L120,55 L100,55 Z" fill="#FF6B5B"/>
+      </svg>
+      <div class="eyebrow">Class 6 · Science</div>
+      <h1 class="title" style="font-size:32px;">Sparky's Circuit City ⚡</h1>
+      <p class="lead">Meet Sparky, your electron guide! Together we'll light up bulbs, build real circuits, and discover the secret paths electricity travels along.</p>
+      <button class="btn big" id="startBtn">Start the Adventure →</button>
+    </div>
+  </section>
+
+  <!-- ================= SCREEN 1: HOOK ================= -->
+  <section class="screen" id="screen-hook">
+    <div class="card">
+      <div class="eyebrow">Stage 1 · A Mystery</div>
+      <h2 class="title">The Dark Room</h2>
+      <div class="circuit-wrap" style="text-align:center; padding:26px 10px;">
+        <svg viewBox="0 0 220 160" style="width:180px;" aria-hidden="true">
+          <rect x="10" y="10" width="200" height="140" rx="14" fill="#0b1428" id="roomBg"/>
+          <circle cx="110" cy="70" r="26" fill="#3a2f52" id="hookBulb"/>
+          <line x1="90" y1="55" x2="130" y2="85" stroke="#8a7fa0" stroke-width="2" id="hookF1"/>
+          <line x1="130" y1="55" x2="90" y2="85" stroke="#8a7fa0" stroke-width="2" id="hookF2"/>
+          <rect x="95" y="120" width="30" height="14" rx="4" fill="#C97C43" id="hookSwitch" style="cursor:pointer;"/>
+          <text x="110" y="131" font-size="8" text-anchor="middle" fill="#fff" style="pointer-events:none;">TAP</text>
+        </svg>
+      </div>
+      <div class="sparky-row">
+        <div class="sparky">
+          <svg viewBox="0 0 200 200"><circle cx="100" cy="100" r="80" fill="#FFE79A"/><circle cx="70" cy="90" r="10" fill="#1C2740" class="blink"/><circle cx="130" cy="90" r="10" fill="#1C2740" class="blink"/><path class="mouth" d="M75,130 Q100,150 125,130" stroke="#1C2740" stroke-width="6" fill="none" stroke-linecap="round"/></svg>
+        </div>
+        <div class="bubble" id="hookBubble">It's so dark in here! Can you tap that little switch and see what happens?</div>
+      </div>
+      <div id="hookQuestion" class="hidden">
+        <p class="lead"><strong>What do you think just made the light turn on?</strong></p>
+        <div class="choices" id="hookChoices"></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn big hidden" id="hookNextBtn">Let's find out! →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= SCREEN 2: MEET ELECTRICITY ================= -->
+  <section class="screen" id="screen-meet">
+    <div class="card">
+      <div class="eyebrow">Stage 2 · Discover</div>
+      <h2 class="title">Tiny Couriers Everywhere</h2>
+      <p class="lead">Every wire is like a tiny street. Living inside it are super-tiny couriers called <strong>electrons</strong>. When they all rush along the street together in one direction, we call it <strong>electric current</strong> — and that's electricity!</p>
+      <div class="circuit-wrap" style="padding:20px;">
+        <svg viewBox="0 0 300 60" style="width:100%;" aria-hidden="true">
+          <line x1="10" y1="30" x2="290" y2="30" stroke="#C97C43" stroke-width="8" stroke-linecap="round"/>
+          <g id="meetElectrons"></g>
+        </svg>
+      </div>
+      <div class="sparky-row">
+        <div class="sparky"><svg viewBox="0 0 200 200"><circle cx="100" cy="100" r="80" fill="#FFE79A"/><circle cx="70" cy="90" r="10" fill="#1C2740"/><circle cx="130" cy="90" r="10" fill="#1C2740"/><path d="M75,125 Q100,110 125,125" stroke="#1C2740" stroke-width="6" fill="none" stroke-linecap="round"/></svg></div>
+        <div class="bubble">But couriers only run if their street forms a full loop — with NO gaps. We call that loop a <strong>circuit</strong>. Ready to build one?</div>
+      </div>
+      <button class="btn big" id="meetNextBtn">Build my first circuit →</button>
+    </div>
+  </section>
+
+  <!-- ================= SCREEN 3: BUILD CIRCUIT ================= -->
+  <section class="screen" id="screen-circuit">
+    <div class="card">
+      <div class="eyebrow">Stage 3 · Build It</div>
+      <h2 class="title">Finish Sparky's Delivery Route</h2>
+      <p class="lead" id="circuitInstruction">Sparky's couriers are stuck at the battery! Two things are stopping them. Find and fix both.</p>
+
+      <div class="circuit-wrap">
+        <svg id="circuitSvg" viewBox="0 0 500 270" aria-label="Circuit diagram">
+          <!-- fixed wires -->
+          <path class="wireFixed" d="M65,110 L65,30 L430,30 L430,42"/>
+          <path class="wireFixed" d="M430,78 L430,230 L300,230"/>
+          <path class="wireFixed" d="M240,230 L150,230"/>
+          <path class="wireFixed" d="M90,230 L65,230 L65,170"/>
+          <!-- gap (fillable) -->
+          <line class="wireGap" id="gapWire" x1="150" y1="230" x2="90" y2="230"/>
+          <!-- switch -->
+          <circle class="contactDot" cx="300" cy="230" r="6"/>
+          <circle class="contactDot" cx="240" cy="230" r="6"/>
+          <line class="switchLever" id="switchLever" x1="300" y1="230" x2="243" y2="230"/>
+          <!-- battery -->
+          <rect class="batteryBody" x="30" y="110" width="70" height="60" rx="8"/>
+          <text x="65" y="145" font-size="20" text-anchor="middle" fill="#FFD23F" font-weight="800">+ −</text>
+          <text x="65" y="188" font-size="13" text-anchor="middle" fill="#cfd6ea">Battery</text>
+          <!-- bulb -->
+          <circle class="bulbGlass" id="bulbGlass" cx="430" cy="60" r="28"/>
+          <line class="bulbFilament" id="fil1" x1="415" y1="47" x2="445" y2="73"/>
+          <line class="bulbFilament" id="fil2" x1="445" y1="47" x2="415" y2="73"/>
+          <text x="430" y="105" font-size="13" text-anchor="middle" fill="#cfd6ea">Bulb</text>
+          <!-- electrons, injected by JS -->
+          <g id="electronLayer"></g>
+        </svg>
+      </div>
+
+      <div class="tray">
+        <div class="wirePiece" id="wirePieceTray" title="Wire piece — tap, then tap the gap"></div>
+        <span class="hint" id="pieceHint">← Tap this wire, then tap the dashed gap in the circuit.</span>
+      </div>
+
+      <div class="sparky-row">
+        <div class="sparky"><svg viewBox="0 0 200 200"><circle cx="100" cy="100" r="80" fill="#FFE79A"/><circle cx="70" cy="90" r="10" fill="#1C2740"/><circle cx="130" cy="90" r="10" fill="#1C2740"/><path class="mouth" id="circuitMouth" d="M75,130 Q100,150 125,130" stroke="#1C2740" stroke-width="6" fill="none" stroke-linecap="round"/></svg></div>
+        <div class="bubble" id="circuitBubble">First, place the missing wire piece. Then tap the switch to close it!</div>
+      </div>
+
+      <button class="btn big hidden" id="circuitNextBtn">Onward! →</button>
+    </div>
+  </section>
+
+  <!-- ================= SCREEN 4: CONDUCTORS/INSULATORS ================= -->
+  <section class="screen" id="screen-sort">
+    <div class="card">
+      <div class="eyebrow">Stage 4 · Sort It</div>
+      <h2 class="title">Open Doors &amp; Locked Doors</h2>
+      <p class="lead"><strong>Conductors</strong> are like open doors — electrons rush right through (metals). <strong>Insulators</strong> are locked doors — electrons can't pass (rubber, wood, plastic, glass).</p>
+      <p class="hint" id="sortStatus">Tap an object, then tap the correct door.</p>
+      <div class="item-grid" id="itemGrid"></div>
+      <div class="bin-row">
+        <button class="bin conductor" id="binConductor">⚡ Conductor<br><span style="font-weight:400;font-size:12px;">electrons pass!</span></button>
+        <button class="bin insulator" id="binInsulator">🚫 Insulator<br><span style="font-weight:400;font-size:12px;">electrons stopped</span></button>
+      </div>
+      <div class="fill-track"><div class="fill-bar" id="sortFill"></div></div>
+      <button class="btn big hidden" id="sortNextBtn" style="margin-top:14px;">Great sorting! Continue →</button>
+    </div>
+  </section>
+
+  <!-- ================= SCREEN 5: SYMBOLS MATCH ================= -->
+  <section class="screen" id="screen-symbols">
+    <div class="card">
+      <div class="eyebrow">Stage 5 · Match It</div>
+      <h2 class="title">Real Things ↔ Circuit Symbols</h2>
+      <p class="lead">Scientists draw circuits using simple symbols instead of pictures. Match each real object to its symbol.</p>
+      <div class="match-grid" id="matchGrid"></div>
+      <button class="btn big hidden" id="matchNextBtn">Nice matching! Continue →</button>
+    </div>
+  </section>
+
+  <!-- ================= SCREEN 6: REAL WORLD ================= -->
+  <section class="screen" id="screen-realworld">
+    <div class="card">
+      <div class="eyebrow">Stage 6 · Explore</div>
+      <h2 class="title">Go On a Circuit Hunt!</h2>
+      <p class="lead">Time to leave Circuit City for a minute. Walk around your home and check off what you find. Come back and tick each box.</p>
+      <div class="checklist" id="realWorldList"></div>
+      <button class="btn big" id="realWorldNextBtn" style="margin-top:14px;" disabled>Continue →</button>
+    </div>
+  </section>
+
+  <!-- ================= SCREEN 7: QUIZ ================= -->
+  <section class="screen" id="screen-quiz">
+    <div class="card">
+      <div class="eyebrow">Stage 7 · Show What You Know</div>
+      <h2 class="title" id="quizTitle">Question <span id="quizNum">1</span> of <span id="quizTotal">6</span></h2>
+      <div class="fill-track"><div class="fill-bar" id="quizFill"></div></div>
+      <div id="quizBody" style="margin-top:14px;"></div>
+    </div>
+  </section>
+
+  <!-- ================= SCREEN 8: CELEBRATION ================= -->
+  <section class="screen" id="screen-end">
+    <div class="card" style="text-align:center;">
+      <div class="eyebrow">Mission Complete</div>
+      <h2 class="title">You Powered Up Circuit City! 🎉</h2>
+      <p class="lead" id="endSummary">You collected stars and lit every bulb along the way.</p>
+      <div class="certificate">
+        <h3>⚡ Certificate of Circuit Mastery ⚡</h3>
+        <div class="cert-name" id="certName">Awarded to a brilliant young engineer</div>
+        <p style="margin:0;">for building circuits, sorting conductors &amp; insulators,<br>and understanding how electricity flows.</p>
+      </div>
+      <div class="sparky-row">
+        <div class="sparky"><svg viewBox="0 0 200 200"><circle cx="100" cy="100" r="80" fill="#FFE79A"/><circle cx="70" cy="90" r="10" fill="#1C2740"/><circle cx="130" cy="90" r="10" fill="#1C2740"/><path d="M75,120 Q100,150 125,120" stroke="#1C2740" stroke-width="6" fill="none" stroke-linecap="round"/></svg></div>
+        <div class="bubble">Now try explaining to someone at home: <em>why does a circuit need to be a closed, unbroken loop?</em> Teaching it is the best way to remember it!</div>
+      </div>
+      <div class="btn-row" style="justify-content:center;">
+        <button class="btn big" id="playAgainBtn">Play Again</button>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script>
+(function(){
+"use strict";
+
+/* ============ small utilities ============ */
+const $ = (sel,root=document)=>root.querySelector(sel);
+const $$ = (sel,root=document)=>Array.from(root.querySelectorAll(sel));
+const STAGES = ["title","hook","meet","circuit","sort","symbols","realworld","quiz","end"];
+let currentStageIdx = 0;
+let voiceOn = true;
+
+/* progress storage */
+const STORAGE_KEY = "circuitCityProgress_v1";
+function loadProgress(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  return {stars:0, voiceOn:true};
+}
+function saveProgress(){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(progress)); }catch(e){}
+}
+let progress = loadProgress();
+voiceOn = progress.voiceOn !== false;
+
+/* ============ starfield ============ */
+(function initStars(){
+  const wrap = $("#stars");
+  for(let i=0;i<50;i++){
+    const s = document.createElement("div");
+    s.className = "twinkle";
+    s.style.left = Math.random()*100+"%";
+    s.style.top = Math.random()*100+"%";
+    s.style.animationDelay = (Math.random()*3)+"s";
+    wrap.appendChild(s);
+  }
+})();
+
+/* ============ progress dots ============ */
+function renderDots(){
+  const wrap = $("#progressWrap");
+  wrap.innerHTML = "";
+  STAGES.forEach((s,i)=>{
+    if(s==="title") return;
+    const d = document.createElement("div");
+    d.className = "dot" + (i<currentStageIdx?" done":"") + (i===currentStageIdx?" current":"");
+    wrap.appendChild(d);
+  });
+  $("#starNum").textContent = progress.stars;
+}
+function goToStage(name){
+  const idx = STAGES.indexOf(name);
+  if(idx<0) return;
+  currentStageIdx = idx;
+  STAGES.forEach(s=>{
+    const el = $("#screen-"+s);
+    if(el) el.classList.toggle("active", s===name);
+  });
+  renderDots();
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+function addStar(n=1){
+  progress.stars += n;
+  saveProgress();
+  renderDots();
+}
+
+/* ============ voice ============ */
+function speak(text){
+  if(!voiceOn) return;
+  try{
+    if(!("speechSynthesis" in window)) return;
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.rate = 0.95; u.pitch = 1.15;
+    window.speechSynthesis.speak(u);
+  }catch(e){}
+}
+function sparkySay(bubbleEl, text, mouthEl){
+  bubbleEl.textContent = text;
+  speak(text);
+  if(mouthEl){
+    mouthEl.parentElement.classList.add("talking");
+    setTimeout(()=>mouthEl.parentElement.classList.remove("talking"), Math.min(4000, text.length*55));
+  }
+}
+$("#voiceBtn").addEventListener("click", ()=>{
+  voiceOn = !voiceOn;
+  progress.voiceOn = voiceOn;
+  saveProgress();
+  $("#voiceBtn").textContent = voiceOn ? "🔊" : "🔈";
+  if(!voiceOn) try{window.speechSynthesis.cancel();}catch(e){}
+});
+$("#voiceBtn").textContent = voiceOn ? "🔊" : "🔈";
+
+/* ============ confetti ============ */
+function burstConfetti(count=60){
+  const colors = ["#FFD23F","#FF6B5B","#4FD9E8","#49C78A","#C97C43"];
+  const layer = $("#confettiLayer");
+  for(let i=0;i<count;i++){
+    const c = document.createElement("div");
+    c.className = "confetto";
+    c.style.left = Math.random()*100+"%";
+    c.style.background = colors[Math.floor(Math.random()*colors.length)];
+    c.style.animationDuration = (2+Math.random()*1.5)+"s";
+    c.style.transform = `rotate(${Math.random()*360}deg)`;
+    layer.appendChild(c);
+    setTimeout(()=>c.remove(), 3600);
+  }
+}
+
+/* ============ home / restart ============ */
+$("#homeBtn").addEventListener("click", ()=>{
+  if(confirm("Go back to the very start? Your stars stay saved.")){
+    goToStage("title");
+  }
+});
+
+/* =====================================================
+   SCREEN: TITLE
+===================================================== */
+$("#startBtn").addEventListener("click", ()=> goToStage("hook"));
+
+/* =====================================================
+   SCREEN: HOOK
+===================================================== */
+(function(){
+  const bulb = $("#hookBulb"), sw = $("#hookSwitch"), room = $("#roomBg");
+  const f1 = $("#hookF1"), f2 = $("#hookF2");
+  let lit = false;
+  sw.addEventListener("click", ()=>{
+    lit = !lit;
+    bulb.setAttribute("fill", lit ? "#FFD23F" : "#3a2f52");
+    bulb.style.filter = lit ? "drop-shadow(0 0 14px #FFD23F)" : "none";
+    room.setAttribute("fill", lit ? "#233158" : "#0b1428");
+    f1.setAttribute("stroke", lit ? "#1C2740" : "#8a7fa0");
+    f2.setAttribute("stroke", lit ? "#1C2740" : "#8a7fa0");
+    if(lit){
+      sparkySay($("#hookBubble"), "Ta-da! Light! But WHY did that happen? Take a guess below.");
+      $("#hookQuestion").classList.remove("hidden");
+      renderHookChoices();
+    }
+  });
+
+  function renderHookChoices(){
+    const wrap = $("#hookChoices");
+    if(wrap.children.length) return;
+    const opts = [
+      "Magic made the bulb glow",
+      "Something travelled through the wire to the bulb",
+      "The bulb makes its own light with no help",
+      "The switch is glowing, not the bulb"
+    ];
+    opts.forEach((opt,i)=>{
+      const b = document.createElement("button");
+      b.className = "choice";
+      b.textContent = opt;
+      b.addEventListener("click", ()=>{
+        $$(".choice", wrap).forEach(c=>c.disabled = true);
+        if(i===1){
+          b.classList.add("correct");
+          sparkySay($("#hookBubble"), "Great thinking! Something DOES travel through the wire — let's meet it!");
+        } else {
+          b.classList.add("wrong");
+          wrap.children[1].classList.add("correct");
+          sparkySay($("#hookBubble"), "Nice guess! Actually, something invisible travels through the wire. Let's meet it!");
+        }
+        $("#hookNextBtn").classList.remove("hidden");
+        addStar(1);
+      });
+      wrap.appendChild(b);
+    });
+  }
+
+  $("#hookNextBtn").addEventListener("click", ()=> goToStage("meet"));
+
+  // narrate on enter
+  document.addEventListener("stageentered:hook", ()=>{
+    sparkySay($("#hookBubble"), "It's so dark in here! Can you tap that little switch and see what happens?");
+  });
+})();
+
+/* =====================================================
+   SCREEN: MEET ELECTRICITY
+===================================================== */
+(function(){
+  const layer = $("#meetElectrons");
+  for(let i=0;i<5;i++){
+    const c = document.createElementNS("http://www.w3.org/2000/svg","circle");
+    c.setAttribute("r","6");
+    c.setAttribute("fill","#FFD23F");
+    c.setAttribute("cy","30");
+    const anim = document.createElementNS("http://www.w3.org/2000/svg","animate");
+    anim.setAttribute("attributeName","cx");
+    anim.setAttribute("from","10");
+    anim.setAttribute("to","290");
+    anim.setAttribute("dur","2.5s");
+    anim.setAttribute("begin",(i*0.5)+"s");
+    anim.setAttribute("repeatCount","indefinite");
+    c.appendChild(anim);
+    layer.appendChild(c);
+  }
+  $("#meetNextBtn").addEventListener("click", ()=> goToStage("circuit"));
+})();
+
+/* =====================================================
+   SCREEN: BUILD CIRCUIT
+===================================================== */
+(function(){
+  let gapFilled = false;
+  let switchClosed = false;
+  let pieceSelected = false;
+  let hasCelebrated = false;
+  const gap = $("#gapWire");
+  const lever = $("#switchLever");
+  const piece = $("#wirePieceTray");
+  const bulbGlass = $("#bulbGlass");
+  const fil1 = $("#fil1"), fil2 = $("#fil2");
+  const electronLayer = $("#electronLayer");
+  const bubble = $("#circuitBubble");
+  const mouth = $("#circuitMouth");
+
+  piece.addEventListener("click", ()=>{
+    if(gapFilled) return;
+    pieceSelected = !pieceSelected;
+    piece.classList.toggle("selected", pieceSelected);
+    if(pieceSelected){
+      sparkySay(bubble, "Now tap the dashed gap in the road to place it!", mouth);
+    }
+  });
+
+  gap.addEventListener("click", ()=>{
+    if(gapFilled) return;
+    if(!pieceSelected){
+      sparkySay(bubble, "First tap the wire piece below, then tap here!", mouth);
+      return;
+    }
+    gapFilled = true;
+    gap.classList.add("filled");
+    piece.classList.add("used");
+    piece.classList.remove("selected");
+    $("#pieceHint").textContent = "Wire connected! ✔";
+    checkCircuit(true);
+  });
+
+  lever.addEventListener("click", ()=>{
+    switchClosed = !switchClosed;
+    lever.style.transform = switchClosed ? "rotate(0deg)" : "rotate(-28deg)";
+    checkCircuit(false);
+  });
+  lever.style.transform = "rotate(-28deg)"; // start open
+
+  function setBulb(on){
+    bulbGlass.classList.toggle("lit", on);
+    fil1.classList.toggle("lit", on);
+    fil2.classList.toggle("lit", on);
+    if(on && electronLayer.children.length===0){
+      spawnElectrons();
+    }
+    if(!on){
+      electronLayer.innerHTML = "";
+    }
+  }
+
+  function spawnElectrons(){
+    electronLayer.innerHTML = "";
+    const pathD = "M65,110 L65,30 L430,30 L430,60 L430,230 L65,230 L65,170";
+    const pathEl = document.createElementNS("http://www.w3.org/2000/svg","path");
+    pathEl.setAttribute("d", pathD);
+    pathEl.setAttribute("id","electronPath");
+    pathEl.setAttribute("fill","none");
+    electronLayer.appendChild(pathEl);
+    for(let i=0;i<5;i++){
+      const c = document.createElementNS("http://www.w3.org/2000/svg","circle");
+      c.setAttribute("r","5");
+      c.setAttribute("class","electron");
+      const am = document.createElementNS("http://www.w3.org/2000/svg","animateMotion");
+      am.setAttribute("dur","3s");
+      am.setAttribute("begin",(i*0.6)+"s");
+      am.setAttribute("repeatCount","indefinite");
+      const mpath = document.createElementNS("http://www.w3.org/2000/svg","mpath");
+      mpath.setAttributeNS("http://www.w3.org/1999/xlink","href","#electronPath");
+      mpath.setAttribute("href","#electronPath");
+      am.appendChild(mpath);
+      c.appendChild(am);
+      electronLayer.appendChild(c);
+    }
+  }
+
+  function checkCircuit(justFilledGap){
+    if(gapFilled && switchClosed){
+      setBulb(true);
+      if(!hasCelebrated){
+        hasCelebrated = true;
+        sparkySay(bubble, "IT'S LIT! You closed the loop and now my couriers can zoom all the way around! That's a working circuit!", mouth);
+        addStar(2);
+        burstConfetti(40);
+        $("#circuitInstruction").textContent = "Great! Now try tapping the switch again — watch what happens when the loop breaks.";
+        setTimeout(()=>{ $("#circuitNextBtn").classList.remove("hidden"); }, 400);
+      } else {
+        sparkySay(bubble, "Loop closed again — couriers are back on the move!", mouth);
+      }
+    } else {
+      setBulb(false);
+      if(hasCelebrated){
+        sparkySay(bubble, "See? The moment the loop breaks, the couriers stop instantly. No glow!", mouth);
+      } else if(gapFilled && !switchClosed){
+        sparkySay(bubble, "Wire's connected! Now tap the switch to close the last gap.", mouth);
+      } else if(!gapFilled && justFilledGap===false){
+        sparkySay(bubble, "There's still a missing wire piece to place first.", mouth);
+      }
+    }
+  }
+
+  $("#circuitNextBtn").addEventListener("click", ()=> goToStage("sort"));
+})();
+
+/* =====================================================
+   SCREEN: SORT (conductors/insulators)
+===================================================== */
+(function(){
+  const items = [
+    {name:"Iron key", emoji:"🔑", type:"conductor"},
+    {name:"Wooden pencil", emoji:"✏️", type:"insulator"},
+    {name:"Steel spoon", emoji:"🥄", type:"conductor"},
+    {name:"Rubber eraser", emoji:"🧽", type:"insulator"},
+    {name:"Coin", emoji:"🪙", type:"conductor"},
+    {name:"Plastic ruler", emoji:"📏", type:"insulator"},
+    {name:"Aluminium foil", emoji:"🧻", type:"conductor"},
+    {name:"Glass tumbler", emoji:"🥃", type:"insulator"}
+  ];
+  let selected = null;
+  let correctCount = 0;
+  let done = 0;
+  const grid = $("#itemGrid");
+  const status = $("#sortStatus");
+
+  items.forEach((it,i)=>{
+    const d = document.createElement("div");
+    d.className = "item";
+    d.dataset.idx = i;
+    d.innerHTML = `<span class="emoji">${it.emoji}</span>${it.name}`;
+    d.addEventListener("click", ()=>{
+      if(d.classList.contains("correct")) return;
+      $$(".item", grid).forEach(x=>x.style.outline="none");
+      selected = i;
+      d.style.outline = "3px solid #4FD9E8";
+    });
+    grid.appendChild(d);
+  });
+
+  function handleBin(type){
+    if(selected===null) { status.textContent = "Tap an object first, then choose a door."; return; }
+    const idx = selected;
+    const el = $(`.item[data-idx="${idx}"]`, grid);
+    const it = items[idx];
+    if(el.classList.contains("correct")) return;
+    if(it.type === type){
+      el.classList.add("correct");
+      correctCount++;
+      status.textContent = `Right! ${it.name} is a${it.type==="conductor"?"n":""} ${it.type}.`;
+      addStar(0.5);
+    } else {
+      el.classList.add("wrong");
+      status.textContent = `Not quite — ${it.name} is actually a${it.type==="conductor"?"n":""} ${it.type}. ${it.type==="insulator" ? "Think of it like a locked door for electrons." : "Metals let electrons rush right through!"}`;
+      setTimeout(()=>el.classList.remove("wrong"), 1400);
+    }
+    done++;
+    $("#sortFill").style.width = Math.round((done/items.length)*100)+"%";
+    selected = null;
+    if(done>=items.length){
+      setTimeout(()=>{
+        status.textContent = `All sorted! You got ${correctCount} of ${items.length} on the first try.`;
+        $("#sortNextBtn").classList.remove("hidden");
+      }, 300);
+    }
+  }
+  $("#binConductor").addEventListener("click", ()=>handleBin("conductor"));
+  $("#binInsulator").addEventListener("click", ()=>handleBin("insulator"));
+  $("#sortNextBtn").addEventListener("click", ()=> goToStage("symbols"));
+})();
+
+/* =====================================================
+   SCREEN: SYMBOL MATCHING
+===================================================== */
+(function(){
+  const pairs = [
+    {id:"cell", face:"🔋", label:"Cell", symbol:"symCell"},
+    {id:"bulb", face:"💡", label:"Bulb", symbol:"symBulb"},
+    {id:"switch", face:"🎚️", label:"Switch", symbol:"symSwitch"},
+    {id:"wire", face:"➖", label:"Wire", symbol:"symWire"}
+  ];
+  const symbolSVG = {
+    symCell: `<svg viewBox="0 0 40 40" width="30" height="30"><line x1="2" y1="20" x2="13" y2="20" stroke="#C97C43" stroke-width="3"/><line x1="13" y1="8" x2="13" y2="32" stroke="#1C2740" stroke-width="4"/><line x1="21" y1="14" x2="21" y2="26" stroke="#1C2740" stroke-width="2"/><line x1="21" y1="20" x2="38" y2="20" stroke="#C97C43" stroke-width="3"/></svg>`,
+    symBulb: `<svg viewBox="0 0 40 40" width="30" height="30"><circle cx="20" cy="20" r="15" fill="none" stroke="#1C2740" stroke-width="3"/><line x1="10" y1="10" x2="30" y2="30" stroke="#1C2740" stroke-width="3"/><line x1="30" y1="10" x2="10" y2="30" stroke="#1C2740" stroke-width="3"/></svg>`,
+    symSwitch: `<svg viewBox="0 0 40 40" width="30" height="30"><circle cx="6" cy="24" r="3" fill="#1C2740"/><circle cx="34" cy="24" r="3" fill="#1C2740"/><line x1="6" y1="24" x2="28" y2="10" stroke="#1C2740" stroke-width="3"/></svg>`,
+    symWire: `<svg viewBox="0 0 40 40" width="30" height="30"><circle cx="4" cy="20" r="3" fill="#1C2740"/><line x1="4" y1="20" x2="36" y2="20" stroke="#1C2740" stroke-width="3"/><circle cx="36" cy="20" r="3" fill="#1C2740"/></svg>`
+  };
+  let cards = [];
+  pairs.forEach(p=>{
+    cards.push({key:p.id, kind:"face", content:p.face, label:p.label});
+    cards.push({key:p.id, kind:"symbol", content:symbolSVG[p.symbol], label:p.label});
+  });
+  // shuffle
+  for(let i=cards.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [cards[i],cards[j]] = [cards[j],cards[i]];
+  }
+  const grid = $("#matchGrid");
+  let flipped = [];
+  let lockedCount = 0;
+  let busy = false;
+
+  cards.forEach((c,i)=>{
+    const el = document.createElement("div");
+    el.className = "match-card";
+    el.dataset.idx = i;
+    el.textContent = "?";
+    el.addEventListener("click", ()=>{
+      if(busy || el.classList.contains("locked") || flipped.includes(i)) return;
+      el.classList.add("flipped");
+      el.innerHTML = c.content;
+      flipped.push(i);
+      if(flipped.length===2){
+        busy = true;
+        const [a,b] = flipped;
+        const ca = cards[a], cb = cards[b];
+        if(ca.key===cb.key && ca.kind!==cb.kind){
+          setTimeout(()=>{
+            $(`.match-card[data-idx="${a}"]`, grid).classList.add("locked");
+            $(`.match-card[data-idx="${b}"]`, grid).classList.add("locked");
+            lockedCount += 2;
+            addStar(0.5);
+            flipped = [];
+            busy = false;
+            if(lockedCount>=cards.length){
+              $("#matchNextBtn").classList.remove("hidden");
+            }
+          }, 400);
+        } else {
+          setTimeout(()=>{
+            [a,b].forEach(idx=>{
+              const cardEl = $(`.match-card[data-idx="${idx}"]`, grid);
+              cardEl.classList.remove("flipped");
+              cardEl.textContent = "?";
+            });
+            flipped = [];
+            busy = false;
+          }, 800);
+        }
+      }
+    });
+    grid.appendChild(el);
+  });
+  $("#matchNextBtn").addEventListener("click", ()=> goToStage("realworld"));
+})();
+
+/* =====================================================
+   SCREEN: REAL WORLD CHECKLIST
+===================================================== */
+(function(){
+  const tasks = [
+    "Find a torch, lamp, or fan and locate its switch.",
+    "Find something made of metal (a spoon, key, or coin) — a conductor!",
+    "Find something made of plastic, rubber, or wood — an insulator!",
+    "Look inside a torch (with an adult) and try to spot the battery."
+  ];
+  const list = $("#realWorldList");
+  tasks.forEach((t,i)=>{
+    const row = document.createElement("label");
+    row.className = "check-item";
+    row.innerHTML = `<input type="checkbox" id="rw${i}"><span>${t}</span>`;
+    list.appendChild(row);
+    row.querySelector("input").addEventListener("change", updateRW);
+  });
+  function updateRW(){
+    const checked = $$('input[type="checkbox"]', list).filter(c=>c.checked).length;
+    $("#realWorldNextBtn").disabled = checked < 2;
+    if(checked>=2 && !$("#realWorldNextBtn").dataset.starred){
+      addStar(1);
+      $("#realWorldNextBtn").dataset.starred = "1";
+    }
+  }
+  $("#realWorldNextBtn").addEventListener("click", ()=> goToStage("quiz"));
+})();
+
+/* =====================================================
+   SCREEN: QUIZ
+===================================================== */
+(function(){
+  const questions = [
+    {
+      type:"mcq",
+      q:"What makes a bulb light up?",
+      opts:["An open circuit","A closed, unbroken circuit","A broken wire","Nothing special"],
+      correct:1,
+      explain:"Electrons can only flow all the way around when the loop is complete — that's a closed circuit."
+    },
+    {
+      type:"tf",
+      q:"True or False: An open circuit lets electricity flow freely.",
+      opts:["True","False"],
+      correct:1,
+      explain:"An open circuit has a gap, so the courier electrons get stuck — nothing flows."
+    },
+    {
+      type:"mcq",
+      q:"Which of these is a conductor?",
+      opts:["Steel spoon","Wooden pencil","Rubber eraser","Glass tumbler"],
+      correct:0,
+      explain:"Metals like steel let electrons pass through easily — that makes them conductors."
+    },
+    {
+      type:"mcq",
+      q:"⊗ — this circuit symbol stands for the:",
+      opts:["Battery","Switch","Bulb","Wire"],
+      correct:2,
+      explain:"The circle with an X is the standard symbol scientists use for a bulb."
+    },
+    {
+      type:"mcq",
+      q:"What job does a switch do in a circuit?",
+      opts:["Makes the wire longer","Opens or closes the path for electrons","Changes the bulb's colour","Stores electricity"],
+      correct:1,
+      explain:"A switch is a controllable gap — closing it completes the circuit, opening it breaks it."
+    },
+    {
+      type:"mcq",
+      q:"Which order correctly describes how a torch lights up?",
+      opts:[
+        "Battery → wire → switch closed → bulb glows",
+        "Bulb → battery → glows before switching"
+      ],
+      correct:0,
+      explain:"Current starts at the battery, travels the wire, and only reaches the bulb once the switch closes the loop."
+    }
+  ];
+  let qIndex = 0;
+  let firstTryCorrect = 0;
+  const body = $("#quizBody");
+  $("#quizTotal").textContent = questions.length;
+
+  function renderQuestion(){
+    const q = questions[qIndex];
+    $("#quizNum").textContent = qIndex+1;
+    $("#quizFill").style.width = Math.round((qIndex/questions.length)*100)+"%";
+    body.innerHTML = "";
+    const qEl = document.createElement("p");
+    qEl.className = "lead";
+    qEl.style.fontWeight = "800";
+    qEl.textContent = q.q;
+    body.appendChild(qEl);
+    const choicesWrap = document.createElement("div");
+    choicesWrap.className = "choices";
+    let answered = false;
+    let attempts = 0;
+    q.opts.forEach((opt,i)=>{
+      const b = document.createElement("button");
+      b.className = "choice";
+      b.textContent = opt;
+      b.addEventListener("click", ()=>{
+        if(answered) return;
+        attempts++;
+        if(i===q.correct){
+          answered = true;
+          b.classList.add("correct");
+          if(attempts===1) firstTryCorrect++;
+          const fb = document.createElement("div");
+          fb.className = "bubble";
+          fb.style.marginTop = "10px";
+          fb.textContent = "✔ " + q.explain;
+          body.appendChild(fb);
+          speak(q.explain);
+          const nextBtn = document.createElement("button");
+          nextBtn.className = "btn big";
+          nextBtn.style.marginTop = "14px";
+          nextBtn.textContent = (qIndex < questions.length-1) ? "Next question →" : "See my results →";
+          nextBtn.addEventListener("click", ()=>{
+            qIndex++;
+            if(qIndex < questions.length){
+              renderQuestion();
+            } else {
+              finishQuiz();
+            }
+          });
+          body.appendChild(nextBtn);
+        } else {
+          b.classList.add("wrong");
+          b.disabled = true;
+          const fb = document.createElement("div");
+          fb.className = "bubble";
+          fb.style.marginTop = "10px";
+          fb.textContent = "Good effort! Think about it once more...";
+          const old = body.querySelector(".hintFb");
+          if(old) old.remove();
+          fb.classList.add("hintFb");
+          body.appendChild(fb);
+        }
+      });
+      choicesWrap.appendChild(b);
+    });
+    body.appendChild(choicesWrap);
+  }
+
+  function finishQuiz(){
+    $("#quizFill").style.width = "100%";
+    const stars = Math.max(1, Math.round((firstTryCorrect/questions.length)*3));
+    addStar(stars);
+    goToStage("end");
+    $("#endSummary").textContent = `You answered ${firstTryCorrect} of ${questions.length} correctly on the first try, and earned ${progress.stars} stars in total!`;
+    burstConfetti(90);
+  }
+
+  document.addEventListener("stageentered:quiz", ()=>{
+    qIndex = 0; firstTryCorrect = 0;
+    renderQuestion();
+  });
+})();
+
+/* =====================================================
+   SCREEN: END
+===================================================== */
+$("#playAgainBtn").addEventListener("click", ()=>{
+  goToStage("title");
+});
+
+/* =====================================================
+   stage-enter event dispatch (simple hook system)
+===================================================== */
+const origGoToStage = goToStage;
+goToStage = function(name){
+  origGoToStage(name);
+  document.dispatchEvent(new Event("stageentered:"+name));
+};
+
+/* initial render */
+renderDots();
+
+})();
+</script>
+</body>
+</html>

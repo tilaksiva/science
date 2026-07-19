@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Science Adventure - Class 6</title>
+<style>
+:root{
+  --bg1:#b8f2e6;
+  --bg2:#d9f99d;
+  --card:#ffffff;
+  --text:#1f2937;
+  --accent:#2563eb;
+  --shadow:0 10px 24px rgba(0,0,0,.12);
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Arial,Helvetica,sans-serif;
+  background:linear-gradient(135deg,var(--bg1),var(--bg2));
+  color:var(--text);
+}
+header{
+  text-align:center;
+  padding:32px 16px;
+}
+h1{margin:0;font-size:2.4rem}
+.sub{font-size:1.05rem;opacity:.85}
+.progress-wrap{
+  width:min(700px,90%);
+  margin:18px auto;
+}
+.progress{
+  height:18px;background:#e5e7eb;border-radius:999px;overflow:hidden;
+}
+.bar{
+  height:100%;width:0;background:#22c55e;transition:width .4s;
+}
+#progressText{text-align:center;margin-top:8px;font-weight:bold}
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+  gap:22px;
+  padding:24px;
+  max-width:1200px;
+  margin:auto;
+}
+.card{
+  background:var(--card);
+  border-radius:20px;
+  box-shadow:var(--shadow);
+  padding:18px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+.card h2{margin:0}
+.emoji{font-size:3rem;text-align:center}
+button{
+  border:none;
+  border-radius:12px;
+  padding:12px;
+  font-size:1rem;
+  cursor:pointer;
+  background:var(--accent);
+  color:white;
+}
+button:hover{filter:brightness(.95)}
+button:disabled{
+  background:#9ca3af;
+  cursor:not-allowed;
+}
+.status{font-weight:bold}
+footer{
+  text-align:center;
+  padding:24px;
+  opacity:.75;
+}
+</style>
+</head>
+<body>
+<header>
+<h1>🧪 Science Adventure</h1>
+<div class="sub">Telangana State • Class 6 Science</div>
+<div class="progress-wrap">
+  <div class="progress"><div class="bar" id="bar"></div></div>
+  <div id="progressText"></div>
+</div>
+</header>
+
+<div class="grid" id="grid"></div>
+
+<footer>
+Complete each adventure and watch your progress grow! 🌟
+</footer>
+
+<script>
+const lessons = [
+ {title:"Photosynthesis",emoji:"🌿",desc:"Become a Leaf Chef!",file:"photosynthesis.html"},
+ {title:"Electric Circuits",emoji:"⚡",desc:"Help Tiny Electrons!",file:"electricity.html"},
+ {title:"Water Cycle",emoji:"💧",desc:"Follow Droppy!",file:"water-cycle.html"},
+ {title:"Respiration",emoji:"🫁",desc:"Journey of Oxygen",file:"respiration.html"},
+ {title:"Food Chain",emoji:"🦁",desc:"Balance Nature",file:"food-chain.html"},
+ {title:"Force & Friction",emoji:"✋",desc:"Invisible Superheroes",file:"force.html"},
+ {title:"Motion",emoji:"🏃",desc:"Move Like Science",file:"motion.html"},
+ {title:"States of Matter",emoji:"🧊",desc:"Solid, Liquid & Gas",file:"matter.html"},
+ {title:"Habitats & Adaptations",emoji:"🌍",desc:"Survival Challenge",file:"habitats.html"},
+ {title:"Separation of Substances",emoji:"🧲",desc:"Science Detective",file:"separation.html"}
+];
+
+const grid=document.getElementById("grid");
+
+lessons.forEach(l=>{
+  const exists = localStorage.getItem(l.file+"_completed")==="true";
+  const card=document.createElement("div");
+  card.className="card";
+  card.innerHTML=`
+    <div class="emoji">${l.emoji}</div>
+    <h2>${l.title}</h2>
+    <div>${l.desc}</div>
+    <div class="status">${exists?"✅ Completed":"📖 Ready to Learn"}</div>
+    <button ${l.file==="photosynthesis.html"||l.file==="electricity.html"?"":"disabled"} onclick="location.href='${l.file}'">
+      ${l.file==="photosynthesis.html"||l.file==="electricity.html"?"Start Adventure":"Coming Soon"}
+    </button>
+  `;
+  grid.appendChild(card);
+});
+
+const completed = lessons.filter(l=>localStorage.getItem(l.file+"_completed")==="true").length;
+const pct = Math.round(completed/lessons.length*100);
+document.getElementById("bar").style.width=pct+"%";
+document.getElementById("progressText").textContent=
+`${completed} of ${lessons.length} lessons completed (${pct}%)`;
+</script>
+</body>
+</html>
