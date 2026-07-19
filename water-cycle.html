@@ -1,0 +1,1204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Splash's Big Journey — The Water Cycle</title>
+<style>
+  :root{
+    --sky-top:#8ec9ff;
+    --sky-bottom:#e8f7ff;
+    --sun:#ffd23f;
+    --sun-glow:#ffef9e;
+    --ocean-deep:#0b6ba8;
+    --ocean-light:#3aa8e0;
+    --cloud:#ffffff;
+    --cloud-shadow:#c9dcea;
+    --droplet:#2196d8;
+    --droplet-dark:#0e6fa8;
+    --leaf:#3fae5a;
+    --ground:#8a5a34;
+    --ground-light:#b98650;
+    --card:#ffffff;
+    --ink:#123049;
+    --ink-soft:#3d5972;
+    --accent:#ff6f59;
+    --accent2:#ffb703;
+    --good:#38b26a;
+    --bad:#ff6f59;
+    --radius:26px;
+    --font-display: 'Baloo 2', 'Fredoka', system-ui, sans-serif;
+    --font-body: 'Nunito', system-ui, sans-serif;
+  }
+  @font-face{
+    font-family:'Baloo 2';
+    src:local('Baloo 2');
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0;padding:0;height:100%;
+    font-family:var(--font-body);
+    color:var(--ink);
+    overflow-x:hidden;
+    background:linear-gradient(180deg,var(--sky-top) 0%, var(--sky-bottom) 55%, #d7f1dd 100%);
+  }
+  h1,h2,h3{font-family:var(--font-display), var(--font-body); margin:0;}
+  button{font-family:var(--font-body); cursor:pointer;}
+  #app{position:relative; min-height:100vh; padding-bottom:40px;}
+
+  /* ---------- Top bar ---------- */
+  #topbar{
+    position:sticky; top:0; z-index:50;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:10px 18px;
+    background:rgba(255,255,255,0.75);
+    backdrop-filter: blur(6px);
+    border-bottom:3px solid rgba(255,255,255,0.9);
+  }
+  #topbar .brand{
+    display:flex; align-items:center; gap:10px;
+    font-family:var(--font-display);
+    font-size:20px; color:var(--ocean-deep); font-weight:700;
+  }
+  #topbar .brand svg{width:34px;height:34px;}
+  #stats{display:flex; gap:14px; align-items:center;}
+  .stat-pill{
+    display:flex; align-items:center; gap:6px;
+    background:#fff; border-radius:999px; padding:6px 14px;
+    box-shadow:0 3px 0 rgba(0,0,0,0.08);
+    font-weight:800; font-size:15px; color:var(--ink);
+  }
+  .stat-pill svg{width:20px;height:20px;}
+
+  #progress-track{
+    height:10px; background:#dceefc; border-radius:999px; margin:0 18px; overflow:hidden;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.08);
+  }
+  #progress-fill{
+    height:100%; width:0%; border-radius:999px;
+    background:linear-gradient(90deg,var(--accent2),var(--accent));
+    transition:width .6s ease;
+  }
+
+  /* ---------- Scenes ---------- */
+  .scene{
+    display:none;
+    max-width:980px; margin:0 auto; padding:18px 18px 10px;
+    animation:fadeIn .5s ease;
+  }
+  .scene.active{display:block;}
+  @keyframes fadeIn{from{opacity:0; transform:translateY(14px);} to{opacity:1; transform:translateY(0);}}
+
+  .stage{
+    position:relative;
+    background:linear-gradient(180deg,#bfe4ff 0%, #eaf8ff 65%, #fff 100%);
+    border-radius:var(--radius);
+    border:5px solid #fff;
+    box-shadow:0 12px 0 rgba(20,80,120,0.12), 0 12px 30px rgba(20,80,120,0.15);
+    overflow:hidden;
+    height:min(58vh, 460px);
+    min-height:320px;
+  }
+
+  .card{
+    background:var(--card);
+    border-radius:22px;
+    padding:16px 20px;
+    box-shadow:0 8px 0 rgba(20,80,120,0.08);
+    margin-top:16px;
+  }
+
+  .speech-bubble{
+    background:#fff; border-radius:20px; padding:14px 18px;
+    box-shadow:0 6px 0 rgba(20,80,120,0.1);
+    position:relative; font-size:17px; line-height:1.4; font-weight:700;
+    color:var(--ink);
+  }
+  .speech-bubble.small{font-size:15px; font-weight:600; color:var(--ink-soft);}
+
+  .btn{
+    border:none; border-radius:999px; padding:12px 26px;
+    font-weight:800; font-size:16px; color:#fff;
+    background:linear-gradient(180deg,#4cc0f0,var(--ocean-deep));
+    box-shadow:0 5px 0 #084b76;
+    transition:transform .12s ease, box-shadow .12s ease;
+  }
+  .btn:active{transform:translateY(4px); box-shadow:0 1px 0 #084b76;}
+  .btn.secondary{background:linear-gradient(180deg,#ffe08a,var(--accent2)); box-shadow:0 5px 0 #b97c00; color:#4a3300;}
+  .btn.secondary:active{box-shadow:0 1px 0 #b97c00;}
+  .btn.accent{background:linear-gradient(180deg,#ff9587,var(--accent)); box-shadow:0 5px 0 #b4392c;}
+  .btn.accent:active{box-shadow:0 1px 0 #b4392c;}
+  .btn:disabled{opacity:.45; cursor:not-allowed;}
+  .btn svg{vertical-align:-4px; width:18px;height:18px; margin-right:4px;}
+
+  .nav-row{display:flex; justify-content:space-between; align-items:center; margin-top:18px; gap:10px; flex-wrap:wrap;}
+  .hint{font-size:14px; color:var(--ink-soft); font-weight:700;}
+
+  .badge{
+    display:inline-flex; align-items:center; gap:6px;
+    background:#fff7e0; color:#8a5a00; font-weight:800; font-size:13px;
+    padding:5px 12px; border-radius:999px; border:2px solid #ffe08a;
+  }
+
+  /* Sun */
+  .sun{
+    position:absolute; top:24px; right:34px; width:86px; height:86px;
+    border-radius:50%; background:radial-gradient(circle at 35% 35%, #fff6c9, var(--sun) 70%);
+    box-shadow:0 0 0 14px var(--sun-glow), 0 0 40px 10px rgba(255,210,63,.5);
+    cursor:pointer; animation:pulse 3s ease-in-out infinite;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .sun .face{font-size:26px;}
+  @keyframes pulse{0%,100%{transform:scale(1);}50%{transform:scale(1.06);}}
+  .sun.hot{box-shadow:0 0 0 20px var(--sun-glow), 0 0 60px 18px rgba(255,150,30,.7);}
+
+  .ocean{
+    position:absolute; left:0; right:0; bottom:0; height:38%;
+    background:linear-gradient(180deg, var(--ocean-light), var(--ocean-deep));
+  }
+  .wave{
+    position:absolute; left:0; width:200%; height:16px; top:-8px;
+    background:radial-gradient(circle, transparent 60%, var(--ocean-light) 62%) repeat-x;
+    background-size:40px 20px;
+    animation:waveMove 3.5s linear infinite;
+    opacity:.8;
+  }
+  @keyframes waveMove{from{transform:translateX(0);}to{transform:translateX(-40px);}}
+
+  .ground{
+    position:absolute; left:0; right:0; bottom:0; height:16%;
+    background:linear-gradient(180deg, var(--ground-light), var(--ground));
+  }
+
+  .mountain{position:absolute; bottom:14%;}
+
+  /* Droplet character */
+  .droplet{
+    position:absolute; width:46px; height:58px;
+    filter:drop-shadow(0 4px 4px rgba(0,0,0,0.2));
+  }
+  .droplet svg{width:100%; height:100%;}
+
+  .cloud-shape{
+    position:absolute; filter:drop-shadow(0 6px 6px rgba(0,0,0,.12));
+  }
+
+  .float{animation:floaty 3.2s ease-in-out infinite;}
+  @keyframes floaty{0%,100%{transform:translateY(0);}50%{transform:translateY(-10px);}}
+
+  .rain-layer{position:absolute; inset:0; pointer-events:none;}
+  .rain-drop{
+    position:absolute; width:4px; height:14px; border-radius:3px;
+    background:linear-gradient(#bfe6ff,#3aa8e0);
+    top:-20px;
+  }
+
+  /* Progress journey map (signature element) */
+  #journeymap{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-top:18px; padding:14px 10px; position:relative;
+  }
+  #journeymap .track{
+    position:absolute; left:36px; right:36px; top:50%; height:6px;
+    background:#dceefc; border-radius:6px; z-index:0;
+  }
+  #journeymap .track-fill{
+    position:absolute; left:36px; top:50%; height:6px; border-radius:6px;
+    background:linear-gradient(90deg,var(--accent2),var(--accent));
+    z-index:1; transition:width .6s ease; width:0%;
+  }
+  .jm-step{
+    position:relative; z-index:2; display:flex; flex-direction:column; align-items:center; gap:6px;
+    font-size:11px; font-weight:800; color:var(--ink-soft); width:70px; text-align:center;
+  }
+  .jm-dot{
+    width:36px; height:36px; border-radius:50%; background:#fff;
+    border:4px solid #dceefc; display:flex; align-items:center; justify-content:center;
+    font-size:16px; transition:all .3s ease;
+  }
+  .jm-step.done .jm-dot{border-color:var(--good); background:#e8fbf0;}
+  .jm-step.current .jm-dot{border-color:var(--accent); background:#fff0ee; transform:scale(1.15); box-shadow:0 0 0 6px rgba(255,111,89,.18);}
+
+  /* Choice cards */
+  .choices{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:14px; margin-top:16px;}
+  .choice-card{
+    background:#fff; border:4px solid #eaf3fb; border-radius:20px; padding:16px 10px;
+    text-align:center; font-weight:800; font-size:15px; color:var(--ink);
+    transition:transform .12s ease, border-color .12s ease;
+  }
+  .choice-card:hover{transform:translateY(-4px); border-color:#bfe0f7;}
+  .choice-card .emoji{font-size:38px; display:block; margin-bottom:8px;}
+  .choice-card.correct{border-color:var(--good); background:#e8fbf0;}
+  .choice-card.wrong{border-color:var(--bad); background:#fff0ee; animation:shake .4s;}
+  @keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-6px);}75%{transform:translateX(6px);}}
+
+  /* Sequence game */
+  #seq-pool, #seq-slots{display:flex; flex-wrap:wrap; gap:12px; margin-top:12px; min-height:110px;}
+  #seq-slots{
+    background:#eef7fe; border-radius:18px; padding:12px; border:3px dashed #bcdcf2;
+  }
+  .seq-card{
+    width:130px; background:#fff; border-radius:16px; padding:10px; text-align:center;
+    box-shadow:0 4px 0 rgba(20,80,120,0.1); cursor:grab; user-select:none; font-weight:800; font-size:13px;
+    border:3px solid #eaf3fb;
+  }
+  .seq-card .emoji{font-size:30px; display:block;}
+  .seq-slot-empty{
+    width:130px; height:110px; border-radius:16px; border:3px dashed #bcdcf2;
+    display:flex; align-items:center; justify-content:center; color:#9fc3dd; font-weight:800;
+  }
+  .seq-card.placed{opacity:.35; pointer-events:none;}
+
+  /* Cloud fill demo */
+  #cloud-wrap{display:flex; flex-direction:column; align-items:center; gap:14px;}
+  #cloud-meter{
+    width:80%; max-width:340px; height:22px; background:#eaf3fb; border-radius:999px; overflow:hidden;
+    border:3px solid #fff; box-shadow:0 3px 0 rgba(20,80,120,.1);
+  }
+  #cloud-meter-fill{height:100%; width:0%; background:linear-gradient(90deg,#9fd8ff,#3aa8e0); transition:width .3s ease;}
+
+  /* Mic wind meter */
+  #mic-wrap{display:flex; flex-direction:column; align-items:center; gap:10px; margin-top:10px;}
+  #mic-meter{width:80%; max-width:340px; height:18px; background:#eaf3fb; border-radius:999px; overflow:hidden; border:3px solid #fff;}
+  #mic-meter-fill{height:100%; width:0%; background:linear-gradient(90deg,#ffe08a,var(--accent2)); transition:width .1s linear;}
+
+  /* Confetti canvas */
+  #confetti-canvas{position:fixed; inset:0; pointer-events:none; z-index:999;}
+
+  /* toast */
+  #toast{
+    position:fixed; left:50%; bottom:26px; transform:translateX(-50%) translateY(20px);
+    background:var(--ink); color:#fff; padding:12px 22px; border-radius:999px;
+    font-weight:800; opacity:0; transition:all .3s ease; z-index:1000; pointer-events:none;
+    box-shadow:0 8px 20px rgba(0,0,0,.25);
+  }
+  #toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+
+  /* dots nav */
+  #scene-dots{display:flex; justify-content:center; gap:8px; margin-top:14px;}
+  #scene-dots .dot{width:9px;height:9px;border-radius:50%; background:#cfe4f3;}
+  #scene-dots .dot.active{background:var(--accent); width:22px; border-radius:6px;}
+
+  .two-col{display:grid; grid-template-columns:1.1fr .9fr; gap:16px;}
+  @media (max-width:720px){
+    .two-col{grid-template-columns:1fr;}
+    .stage{height:340px;}
+    #topbar .brand{font-size:16px;}
+  }
+
+  .mini-check{margin-top:14px;}
+
+  .real-list{list-style:none; margin:10px 0 0; padding:0; display:flex; flex-direction:column; gap:10px;}
+  .real-list li{
+    display:flex; align-items:center; gap:10px; background:#f3faff; border-radius:14px; padding:10px 14px;
+    font-weight:700; cursor:pointer; border:3px solid transparent;
+  }
+  .real-list li.done{border-color:var(--good); background:#e8fbf0; text-decoration:line-through; color:#3a8a5a;}
+  .real-list li .box{
+    width:22px; height:22px; border-radius:6px; border:3px solid #bcdcf2; flex:none;
+    display:flex; align-items:center; justify-content:center; font-size:14px; background:#fff;
+  }
+
+  .speak-btn{
+    background:#eef7fe; border:none; border-radius:999px; width:38px; height:38px;
+    display:inline-flex; align-items:center; justify-content:center; cursor:pointer; flex:none;
+  }
+  .speak-btn svg{width:18px;height:18px;}
+
+  .title-row{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
+
+  #final-badges{display:flex; gap:14px; flex-wrap:wrap; justify-content:center; margin-top:18px;}
+  .final-badge{
+    background:#fff; border-radius:18px; padding:14px 18px; text-align:center;
+    box-shadow:0 6px 0 rgba(20,80,120,.1); width:120px;
+  }
+  .final-badge .emoji{font-size:36px;}
+  .final-badge .label{font-size:12px; font-weight:800; margin-top:4px; color:var(--ink-soft);}
+
+  #star-fx{position:fixed; pointer-events:none; z-index:998;}
+</style>
+</head>
+<body>
+<canvas id="confetti-canvas"></canvas>
+<div id="toast"></div>
+
+<div id="app">
+  <div id="topbar">
+    <div class="brand">
+      <svg viewBox="0 0 24 24"><path fill="#2196d8" d="M12 2C12 2 5 11 5 15.5A7 7 0 0 0 19 15.5C19 11 12 2 12 2Z"/></svg>
+      Splash's Big Journey
+    </div>
+    <div id="stats">
+      <div class="stat-pill"><span>⭐</span><span id="star-count">0</span></div>
+      <div class="stat-pill"><span>🏅</span><span id="badge-count">0</span></div>
+    </div>
+  </div>
+  <div id="progress-track"><div id="progress-fill"></div></div>
+
+  <!-- ================= SCENE 0: HOOK ================= -->
+  <section class="scene active" id="scene-0">
+    <div class="stage" id="stage-hook">
+      <div class="sun float" id="hookSun" style="top:14px;right:24px;"><span class="face">☀️</span></div>
+      <div class="ground"></div>
+      <svg id="puddleSvg" viewBox="0 0 220 60" style="position:absolute; left:50%; bottom:6%; width:46%; max-width:260px; transform:translateX(-50%); cursor:pointer;">
+        <ellipse id="puddleShape" cx="110" cy="30" rx="100" ry="22" fill="#3aa8e0" opacity="0.9"/>
+        <ellipse cx="110" cy="30" rx="100" ry="22" fill="none" stroke="#bfe6ff" stroke-width="3" opacity="0.7"/>
+        <ellipse cx="70" cy="22" rx="18" ry="6" fill="#bfe6ff" opacity="0.5"/>
+      </svg>
+      <div id="steamLayer" class="rain-layer"></div>
+    </div>
+    <div class="card">
+      <div class="title-row">
+        <h2>🌧️ It rained yesterday...</h2>
+      </div>
+      <p class="speech-bubble" id="hookText">Look at that big puddle outside your window! 💧 Tomorrow morning... it's <b>gone</b>. No one drank it. No one poured it away.<br><br><b>Where did all that water go?</b></p>
+    </div>
+    <div class="nav-row">
+      <span class="hint" id="hookHint">👆 Tap the puddle a few times to see what the sun does to it!</span>
+      <button class="btn" onclick="goScene(1)">I want to find out! →</button>
+    </div>
+  </section>
+
+  <!-- ================= SCENE 1: MEET SPLASH ================= -->
+  <section class="scene" id="scene-1">
+    <div class="two-col">
+      <div class="stage" id="stage-meet">
+      </div>
+      <div class="card" style="margin-top:0;">
+        <h2>👋 Meet Splash!</h2>
+        <p class="speech-bubble small" id="meetText">Hi friend! I'm Splash, a tiny drop of water. I live in the big ocean. But I'm not going to stay here forever... I'm about to go on an incredible journey — up into the sky, across the land, and back home again! Want to come with me?</p>
+        <button class="btn secondary" style="margin-top:10px;" onclick="speak(document.getElementById('meetText').innerText)">🔊 Hear Splash talk</button>
+      </div>
+    </div>
+    <div class="nav-row">
+      <button class="btn" onclick="prevScene()">← Back</button>
+      <button class="btn accent" onclick="goScene(2)">Let's go with Splash! →</button>
+    </div>
+  </section>
+
+  <!-- ================= SCENE 2: EVAPORATION ================= -->
+  <section class="scene" id="scene-2">
+    <div class="stage" id="stage-evap">
+      <div class="sun" id="evapSun"><span class="face">☀️</span></div>
+      <div class="ocean"><div class="wave"></div></div>
+      <div class="droplet float" id="evapDrop" style="left:44%; bottom:22%;"></div>
+    </div>
+    <div class="card">
+      <h2>1️⃣ Evaporation</h2>
+      <p class="speech-bubble" id="evapText">The Sun is shining down on the ocean. Tap the <b>Sun</b> a few times to heat up the water — watch what happens to Splash!</p>
+      <div id="evapMini" class="mini-check" style="display:none;">
+        <p class="speech-bubble small">💭 What do you notice? Splash turned invisible and floated UP! What do you think happened to Splash?</p>
+        <div class="choices" id="evapChoices"></div>
+      </div>
+    </div>
+    <div class="nav-row">
+      <button class="btn" onclick="prevScene()">← Back</button>
+      <button class="btn accent" id="evapNext" style="display:none;" onclick="goScene(3)">Next: Splash meets a cloud →</button>
+    </div>
+  </section>
+
+  <!-- ================= SCENE 3: CONDENSATION ================= -->
+  <section class="scene" id="scene-3">
+    <div class="stage" id="stage-cond">
+      <div class="cloud-shape float" id="condCloud" style="top:60px; left:38%;"></div>
+      <div class="droplet" id="condDrop" style="left:46%; bottom:14%;"></div>
+    </div>
+    <div class="card">
+      <h2>2️⃣ Condensation</h2>
+      <p class="speech-bubble">High in the sky it's cold ❄️. The invisible water vapor cools down and huddles together into tiny droplets — that's how a <b>cloud</b> is born! Millions of tiny droplets join together, just like Splash is about to.</p>
+      <div id="cloud-wrap">
+        <p class="speech-bubble small">🎤 Try this: gently <b>blow</b> into your microphone like the wind, to help more droplets join the cloud! (Or just tap the button.)</p>
+        <div id="mic-wrap">
+          <div id="mic-meter"><div id="mic-meter-fill"></div></div>
+          <button class="btn secondary" id="micBtn" onclick="startMic()">🎤 Blow into the mic</button>
+        </div>
+        <div id="cloud-meter"><div id="cloud-meter-fill"></div></div>
+        <button class="btn" onclick="addDroplet()">➕ Or tap to add a droplet</button>
+      </div>
+    </div>
+    <div class="nav-row">
+      <button class="btn" onclick="prevScene()">← Back</button>
+      <button class="btn accent" id="condNext" style="display:none;" onclick="goScene(4)">The cloud is heavy now! →</button>
+    </div>
+  </section>
+
+  <!-- ================= SCENE 4: PRECIPITATION ================= -->
+  <section class="scene" id="scene-4">
+    <div class="stage" id="stage-precip">
+      <div class="cloud-shape" id="precipCloud" style="top:40px; left:35%;"></div>
+      <div class="rain-layer" id="rainLayer"></div>
+      <div class="ground"></div>
+    </div>
+    <div class="card">
+      <h2>3️⃣ Precipitation</h2>
+      <p class="speech-bubble" id="precipText">The cloud is now so full and heavy that it can't hold on any longer! Tap the <b>cloud</b> to let it rain.</p>
+      <div id="precipMini" class="mini-check" style="display:none;">
+        <p class="speech-bubble small">💭 This falling water — rain, snow, or hail — is called <b>precipitation</b>. Which of these is also precipitation?</p>
+        <div class="choices" id="precipChoices"></div>
+      </div>
+    </div>
+    <div class="nav-row">
+      <button class="btn" onclick="prevScene()">← Back</button>
+      <button class="btn accent" id="precipNext" style="display:none;" onclick="goScene(5)">Where does the rain go? →</button>
+    </div>
+  </section>
+
+  <!-- ================= SCENE 5: COLLECTION ================= -->
+  <section class="scene" id="scene-5">
+    <div class="stage" id="stage-collect">
+      <div class="ground"></div>
+      <div class="ocean"><div class="wave"></div></div>
+      <svg id="riverSvg" style="position:absolute; inset:0; width:100%; height:100%;"></svg>
+      <div class="droplet float" id="collectDrop" style="left:20%; top:30%;"></div>
+    </div>
+    <div class="card">
+      <h2>4️⃣ Collection</h2>
+      <p class="speech-bubble">Rain falls on mountains, fields, and rooftops. It flows downhill, joining little streams, then rivers... and finally, back to the <b>ocean</b> — right where Splash started! 🌊</p>
+      <p class="speech-bubble small">🖐️ Drag Splash along the river, from the mountain down to the ocean!</p>
+    </div>
+    <div class="nav-row">
+      <button class="btn" onclick="prevScene()">← Back</button>
+      <button class="btn accent" id="collectNext" style="display:none;" onclick="goScene(6)">Splash is home! What now? →</button>
+    </div>
+  </section>
+
+  <!-- ================= SCENE 6: BIG PICTURE + SEQUENCE GAME ================= -->
+  <section class="scene" id="scene-6">
+    <div class="card">
+      <h2>🔁 It never stops!</h2>
+      <p class="speech-bubble">Splash's journey has no beginning and no end — it just keeps going, again and again. This never-ending loop is called the <b>Water Cycle</b>. The same water has been going around and around for millions of years. The water you drink today might once have fallen as rain on a dinosaur! 🦕</p>
+    </div>
+    <div class="card">
+      <h3>🧩 Game: Put Splash's journey in the correct order</h3>
+      <p class="speech-bubble small">Drag each card into the empty boxes, in the order it happens.</p>
+      <div id="seq-slots"></div>
+      <div id="seq-pool"></div>
+      <p id="seqResult" class="speech-bubble small" style="display:none;"></p>
+    </div>
+    <div class="nav-row">
+      <button class="btn" onclick="prevScene()">← Back</button>
+      <button class="btn accent" id="seqNext" style="display:none;" onclick="goScene(7)">Next: Real world mission →</button>
+    </div>
+  </section>
+
+  <!-- ================= SCENE 7: REAL WORLD ================= -->
+  <section class="scene" id="scene-7">
+    <div class="card">
+      <h2>🌍 Real-World Water Cycle Mission</h2>
+      <p class="speech-bubble">Try these at home and tap each one you complete!</p>
+      <ul class="real-list" id="realList">
+        <li data-i="0"><span class="box">☐</span> Leave a small cup of water on a sunny windowsill. Check it tomorrow — has any disappeared?</li>
+        <li data-i="1"><span class="box">☐</span> Breathe out onto a cold steel spoon or mirror. What do you see appear? (That's condensation!)</li>
+        <li data-i="2"><span class="box">☐</span> Watch the sky for clouds today. Are they fluffy and white, or dark and heavy?</li>
+        <li data-i="3"><span class="box">☐</span> After it rains, look for a puddle. Come back later and see if it's smaller.</li>
+      </ul>
+    </div>
+    <div class="nav-row">
+      <button class="btn" onclick="prevScene()">← Back</button>
+      <button class="btn accent" onclick="goScene(8)">I'm ready for the final challenge! →</button>
+    </div>
+  </section>
+
+  <!-- ================= SCENE 8: QUIZ ================= -->
+  <section class="scene" id="scene-8">
+    <div class="card">
+      <h2>🎯 Splash's Final Challenge</h2>
+      <p class="speech-bubble small" id="quizProgress">Question 1 of 4</p>
+      <div id="quizBox"></div>
+    </div>
+    <div class="nav-row">
+      <button class="btn" onclick="prevScene()">← Back</button>
+      <span></span>
+    </div>
+  </section>
+
+  <!-- ================= SCENE 9: CELEBRATION ================= -->
+  <section class="scene" id="scene-9">
+    <div class="card" style="text-align:center;">
+      <h2>🎉 You completed the Water Cycle Adventure!</h2>
+      <p class="speech-bubble">Splash is so proud of you! You now understand something that scientists study their whole lives: <b>evaporation → condensation → precipitation → collection</b>, again and again, forever.</p>
+      <div id="final-badges"></div>
+      <div class="card" style="text-align:left;">
+        <h3>🗣️ Now YOU teach Splash!</h3>
+        <p class="speech-bubble small">Say out loud, in your own words: "The water cycle is when..." — try explaining it to a family member. Tap below to hear Splash explain it one more time if you need a reminder.</p>
+        <button class="btn secondary" onclick="speak('The water cycle has four steps. First, evaporation: the sun heats water and turns it into invisible vapor that rises into the sky. Second, condensation: the vapor cools and forms clouds. Third, precipitation: the cloud gets heavy and water falls as rain, snow or hail. Fourth, collection: the water gathers in rivers, lakes and oceans, ready to evaporate again. This cycle repeats forever.')">🔊 Hear the full story again</button>
+      </div>
+      <button class="btn" style="margin-top:16px;" onclick="goScene(0)">🔄 Restart the adventure</button>
+    </div>
+  </section>
+
+  <div id="scene-dots"></div>
+</div>
+
+<script>
+/* ============================================================
+   GLOBAL STATE
+============================================================ */
+const TOTAL_SCENES = 10;
+let current = 0;
+let stars = 0;
+let badges = 0;
+const synth = window.speechSynthesis;
+
+function $(sel, root=document){return root.querySelector(sel);}
+function $all(sel, root=document){return Array.from(root.querySelectorAll(sel));}
+
+function speak(text){
+  try{
+    if(!synth) return;
+    synth.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.rate = 0.98; u.pitch = 1.15;
+    const voices = synth.getVoices();
+    const kid = voices.find(v=>/female|zira|samantha|google us/i.test(v.name));
+    if(kid) u.voice = kid;
+    synth.speak(u);
+  }catch(e){}
+}
+
+function toast(msg){
+  const t = $('#toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(()=>t.classList.remove('show'), 2200);
+}
+
+function addStar(n=1){
+  stars += n;
+  $('#star-count').textContent = stars;
+  burstStars();
+}
+function addBadge(){
+  badges += 1;
+  $('#badge-count').textContent = badges;
+}
+
+function updateProgress(){
+  const pct = Math.round((current/(TOTAL_SCENES-1))*100);
+  $('#progress-fill').style.width = pct+'%';
+  const dotsWrap = $('#scene-dots');
+  dotsWrap.innerHTML = '';
+  for(let i=0;i<TOTAL_SCENES;i++){
+    const d = document.createElement('div');
+    d.className = 'dot' + (i===current?' active':'');
+    dotsWrap.appendChild(d);
+  }
+}
+
+function goScene(n){
+  if(n<0||n>=TOTAL_SCENES) return;
+  $all('.scene').forEach(s=>s.classList.remove('active'));
+  current = n;
+  $('#scene-'+n).classList.add('active');
+  updateProgress();
+  window.scrollTo({top:0, behavior:'smooth'});
+  onSceneEnter(n);
+}
+function prevScene(){ goScene(current-1); }
+
+function onSceneEnter(n){
+  if(n===8) initQuiz();
+}
+
+/* ============================================================
+   CONFETTI / STAR BURST CANVAS
+============================================================ */
+const cvs = document.getElementById('confetti-canvas');
+const ctx = cvs.getContext('2d');
+function resizeCanvas(){ cvs.width = innerWidth; cvs.height = innerHeight; }
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+function confettiBurst(){
+  const colors = ['#ff6f59','#ffb703','#38b26a','#2196d8','#ffd23f'];
+  const pieces = [];
+  for(let i=0;i<90;i++){
+    pieces.push({
+      x: cvs.width/2 + (Math.random()-0.5)*200,
+      y: cvs.height*0.3,
+      vx:(Math.random()-0.5)*10,
+      vy: Math.random()*-8-4,
+      size: Math.random()*8+4,
+      color: colors[Math.floor(Math.random()*colors.length)],
+      rot: Math.random()*360,
+      vr: (Math.random()-0.5)*20,
+      life:0
+    });
+  }
+  let frame=0;
+  function anim(){
+    frame++;
+    ctx.clearRect(0,0,cvs.width,cvs.height);
+    let alive=false;
+    pieces.forEach(p=>{
+      p.vy += 0.28;
+      p.x += p.vx; p.y += p.vy; p.rot += p.vr; p.life++;
+      if(p.y < cvs.height+20){ alive = true; }
+      ctx.save();
+      ctx.translate(p.x,p.y);
+      ctx.rotate(p.rot*Math.PI/180);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.size/2,-p.size/2,p.size,p.size*0.6);
+      ctx.restore();
+    });
+    if(alive && frame<220){ requestAnimationFrame(anim); }
+    else ctx.clearRect(0,0,cvs.width,cvs.height);
+  }
+  anim();
+}
+
+function burstStars(){
+  const el = document.createElement('div');
+  el.textContent='⭐';
+  el.style.position='fixed';
+  el.style.left = (Math.random()*60+20)+'vw';
+  el.style.top = '40vh';
+  el.style.fontSize='28px';
+  el.style.zIndex=999;
+  el.style.transition='all 0.9s ease-out';
+  document.body.appendChild(el);
+  requestAnimationFrame(()=>{
+    el.style.top = '20px';
+    el.style.right= '20px';
+    el.style.left = 'auto';
+    el.style.opacity='0.2';
+    el.style.transform='scale(0.4)';
+  });
+  setTimeout(()=>el.remove(), 950);
+}
+
+/* ============================================================
+   DROPLET SVG GENERATOR (a friendly character with a face)
+============================================================ */
+function dropletSVG(mood='happy', color1='#2196d8', color2='#0e6fa8'){
+  const faces = {
+    happy: `<circle cx="17" cy="34" r="3" fill="#123049"/><circle cx="29" cy="34" r="3" fill="#123049"/><path d="M16 42 Q23 48 30 42" stroke="#123049" stroke-width="3" fill="none" stroke-linecap="round"/>`,
+    excited: `<circle cx="17" cy="33" r="3.4" fill="#123049"/><circle cx="29" cy="33" r="3.4" fill="#123049"/><path d="M15 41 Q23 50 31 41" stroke="#123049" stroke-width="3" fill="none" stroke-linecap="round"/>`,
+    surprised: `<circle cx="17" cy="34" r="3" fill="#123049"/><circle cx="29" cy="34" r="3" fill="#123049"/><circle cx="23" cy="44" r="4" fill="#123049"/>`
+  };
+  return `<svg viewBox="0 0 46 58" xmlns="http://www.w3.org/2000/svg">
+    <path d="M23 2 C23 2 4 28 4 40 A19 19 0 0 0 42 40 C42 28 23 2 23 2Z" fill="${color1}"/>
+    <path d="M23 2 C23 2 4 28 4 40 A19 19 0 0 0 42 40 C42 28 23 2 23 2Z" fill="url(#g)" opacity="0.35"/>
+    <ellipse cx="15" cy="24" rx="5" ry="8" fill="#ffffff" opacity="0.35"/>
+    ${faces[mood]||faces.happy}
+    <defs>
+      <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#ffffff"/>
+        <stop offset="1" stop-color="${color2}"/>
+      </linearGradient>
+    </defs>
+  </svg>`;
+}
+
+function cloudSVG(fill='#ffffff'){
+  return `<svg viewBox="0 0 160 90" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="45" cy="55" rx="38" ry="30" fill="${fill}"/>
+    <ellipse cx="85" cy="40" rx="46" ry="36" fill="${fill}"/>
+    <ellipse cx="125" cy="58" rx="34" ry="26" fill="${fill}"/>
+    <ellipse cx="80" cy="66" rx="60" ry="20" fill="${fill}"/>
+  </svg>`;
+}
+
+/* Insert droplet SVGs into placeholders */
+function paintDroplets(){
+  $all('.droplet').forEach(d=>{
+    if(!d.innerHTML.trim()) d.innerHTML = dropletSVG('happy');
+  });
+  $all('.cloud-shape').forEach(c=>{
+    if(!c.innerHTML.trim()){ c.style.width='160px'; c.style.height='90px'; c.innerHTML = cloudSVG(); }
+  });
+}
+paintDroplets();
+
+/* ============================================================
+   SCENE 0: HOOK — tap the sun / puddle
+============================================================ */
+let hookTaps = 0;
+function shrinkPuddle(){
+  hookTaps++;
+  $('#hookSun').classList.add('hot');
+  const shape = $('#puddleShape');
+  const scale = Math.max(0.05, 1 - hookTaps*0.16);
+  shape.setAttribute('rx', 100*scale);
+  shape.setAttribute('ry', 22*scale);
+  shape.setAttribute('opacity', Math.max(0.05, 0.9 - hookTaps*0.12));
+  spawnSteam();
+  if(hookTaps===1){
+    toast('☀️ The sun is warming the puddle...');
+    speak("What do you think happens to a puddle when the sun shines on it? Keep tapping!");
+  }
+  if(hookTaps>=6){
+    $('#hookText').innerHTML = "Look — the puddle is <b>gone</b>! It didn't get eaten or poured away. The Sun's heat turned it into something invisible that floated up into the sky. Let's follow it and find out exactly what happened!";
+    $('#hookHint').textContent = "✨ Tap 'I want to find out!' below to meet your guide.";
+    toast('💨 The puddle disappeared into thin air!');
+  }
+}
+function spawnSteam(){
+  const layer = $('#steamLayer');
+  for(let i=0;i<4;i++){
+    const s = document.createElement('div');
+    s.textContent = '〰️';
+    s.style.position='absolute';
+    s.style.left = (44 + Math.random()*12) + '%';
+    s.style.bottom = '18%';
+    s.style.fontSize = '18px';
+    s.style.opacity = '0.8';
+    s.style.transition = 'all 1.4s ease-out';
+    layer.appendChild(s);
+    requestAnimationFrame(()=>{
+      s.style.bottom = '80%';
+      s.style.opacity = '0';
+      s.style.transform = 'translateX(' + (Math.random()*40-20) + 'px)';
+    });
+    setTimeout(()=>s.remove(), 1500);
+  }
+}
+$('#hookSun').addEventListener('click', shrinkPuddle);
+$('#puddleSvg').addEventListener('click', shrinkPuddle);
+
+/* ============================================================
+   SCENE 2: EVAPORATION
+============================================================ */
+let evapTaps = 0;
+const evapSun = $('#evapSun');
+const evapDrop = $('#evapDrop');
+evapSun.addEventListener('click', ()=>{
+  evapTaps++;
+  evapSun.classList.add('hot');
+  evapDrop.style.transition = 'all 1.1s ease';
+  evapDrop.style.bottom = (22 + evapTaps*16)+'%';
+  evapDrop.style.opacity = Math.max(0, 1-(evapTaps*0.28));
+  evapDrop.style.left = (44 + evapTaps*2)+'%';
+  if(evapTaps===1) speak("The sun is heating the ocean water!");
+  if(evapTaps>=4 && $('#evapMini').style.display==='none'){
+    $('#evapMini').style.display='block';
+    buildEvapChoices();
+    speak("Ooh! Splash disappeared into the air. What do you think happened?");
+  }
+});
+
+function buildEvapChoices(){
+  const opts = [
+    {emoji:'🌫️', label:'Turned into invisible water vapour and rose up', correct:true},
+    {emoji:'🍽️', label:'Was eaten by a fish', correct:false},
+    {emoji:'❄️', label:'Turned into ice instantly', correct:false},
+  ];
+  const wrap = $('#evapChoices');
+  wrap.innerHTML='';
+  opts.forEach(o=>{
+    const c = document.createElement('div');
+    c.className='choice-card';
+    c.innerHTML = `<span class="emoji">${o.emoji}</span>${o.label}`;
+    c.addEventListener('click', ()=>{
+      if(o.correct){
+        c.classList.add('correct');
+        addStar();
+        toast('✨ Yes! That\\'s EVAPORATION!');
+        speak("That's right! Heat from the sun turns liquid water into invisible water vapour, which rises into the sky. This is called evaporation.");
+        $('#evapNext').style.display='inline-block';
+      }else{
+        c.classList.add('wrong');
+        setTimeout(()=>c.classList.remove('wrong'),500);
+        toast('Nice try! Let\\'s think again 🤔');
+        speak("Good guess! But let's look again. The water didn't disappear, it became too small and light to see, and floated upward, just like steam from a hot cup of tea.");
+      }
+    });
+    wrap.appendChild(c);
+  });
+}
+
+/* ============================================================
+   SCENE 3: CONDENSATION — cloud fill meter + mic
+============================================================ */
+let cloudFill = 0;
+function addDroplet(){
+  cloudFill = Math.min(100, cloudFill+14);
+  $('#cloud-meter-fill').style.width = cloudFill+'%';
+  const cloud = $('#condCloud');
+  cloud.style.transform = `scale(${1+cloudFill/260})`;
+  if(cloudFill>=100 && $('#condNext').style.display==='none'){
+    $('#condNext').style.display='inline-block';
+    addStar();
+    toast('☁️ The cloud is full of tiny droplets!');
+    speak("Great! The cloud is now packed with billions of tiny water droplets, all huddled together. It's getting heavy!");
+  }
+}
+
+let micStream = null, micCtx = null, micAnalyser = null, micRunning=false;
+async function startMic(){
+  const btn = $('#micBtn');
+  if(micRunning){ return; }
+  try{
+    micStream = await navigator.mediaDevices.getUserMedia({audio:true});
+    micCtx = new (window.AudioContext||window.webkitAudioContext)();
+    const src = micCtx.createMediaStreamSource(micStream);
+    micAnalyser = micCtx.createAnalyser();
+    micAnalyser.fftSize = 512;
+    src.connect(micAnalyser);
+    micRunning = true;
+    btn.textContent = '🎤 Listening... blow now!';
+    micLoop();
+  }catch(e){
+    toast('🎤 Mic not available — tap the button instead!');
+  }
+}
+function micLoop(){
+  if(!micRunning) return;
+  const data = new Uint8Array(micAnalyser.frequencyBinCount);
+  micAnalyser.getByteFrequencyData(data);
+  const avg = data.reduce((a,b)=>a+b,0)/data.length;
+  const level = Math.min(100, avg*1.6);
+  $('#mic-meter-fill').style.width = level+'%';
+  if(level>35){
+    addDroplet();
+  }
+  requestAnimationFrame(micLoop);
+}
+window.addEventListener('beforeunload', ()=>{ if(micStream) micStream.getTracks().forEach(t=>t.stop()); });
+
+/* ============================================================
+   SCENE 4: PRECIPITATION — tap cloud to rain
+============================================================ */
+const precipCloud = $('#precipCloud');
+let rained = false;
+precipCloud.addEventListener('click', ()=>{
+  if(rained) return;
+  rained = true;
+  makeRain();
+  toast('🌧️ It\\'s raining!');
+  speak("The cloud let go! This falling water is called precipitation. It can fall as rain, snow, sleet, or hail.");
+  setTimeout(()=>{
+    $('#precipMini').style.display='block';
+    buildPrecipChoices();
+  }, 1200);
+});
+function makeRain(){
+  const layer = $('#rainLayer');
+  layer.innerHTML='';
+  for(let i=0;i<40;i++){
+    const d = document.createElement('div');
+    d.className='rain-drop';
+    d.style.left = (Math.random()*90+5)+'%';
+    d.style.animation = `rainFall ${0.6+Math.random()*0.5}s linear ${Math.random()*0.8}s infinite`;
+    layer.appendChild(d);
+  }
+  const style = document.createElement('style');
+  style.textContent = `@keyframes rainFall{from{transform:translateY(0);opacity:1;}to{transform:translateY(260px);opacity:0.2;}}`;
+  document.head.appendChild(style);
+}
+function buildPrecipChoices(){
+  const opts = [
+    {emoji:'❄️', label:'Snow', correct:true},
+    {emoji:'🧊', label:'Hail', correct:true},
+    {emoji:'🌈', label:'Rainbow', correct:false},
+  ];
+  const wrap = $('#precipChoices');
+  wrap.innerHTML='';
+  let correctPicked=0;
+  opts.forEach(o=>{
+    const c = document.createElement('div');
+    c.className='choice-card';
+    c.innerHTML = `<span class="emoji">${o.emoji}</span>${o.label}`;
+    c.addEventListener('click', ()=>{
+      if(o.correct){
+        c.classList.add('correct');
+        if(!c.dataset.done){ addStar(); correctPicked++; c.dataset.done='1'; }
+        toast('✅ Yes, that falls from clouds too!');
+      }else{
+        c.classList.add('wrong');
+        setTimeout(()=>c.classList.remove('wrong'),500);
+        toast('A rainbow is light bending in raindrops, but it doesn\\'t fall!');
+      }
+      if(correctPicked>=2){
+        $('#precipNext').style.display='inline-block';
+      }
+    });
+    wrap.appendChild(c);
+  });
+}
+
+/* ============================================================
+   SCENE 5: COLLECTION — drag droplet down a simple river path
+============================================================ */
+function buildRiverPath(){
+  const svg = $('#riverSvg');
+  const w = svg.clientWidth || 800, h = svg.clientHeight || 400;
+  svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+  const path = `M ${w*0.2} ${h*0.32} C ${w*0.35} ${h*0.45}, ${w*0.25} ${h*0.55}, ${w*0.45} ${h*0.62} S ${w*0.75} ${h*0.7}, ${w*0.8} ${h*0.78}`;
+  svg.innerHTML = `<path d="${path}" id="riverPath" fill="none" stroke="#79c8ef" stroke-width="14" stroke-linecap="round" opacity="0.85"/>
+  <path d="${path}" fill="none" stroke="#bfe6ff" stroke-width="5" stroke-linecap="round" opacity="0.9"/>`;
+  return svg.querySelector('#riverPath');
+}
+let riverPathEl, riverLen, dragProgress=0, dragging=false;
+function initCollectionScene(){
+  riverPathEl = buildRiverPath();
+  riverLen = riverPathEl.getTotalLength();
+  placeDropOnPath(0);
+}
+function placeDropOnPath(t){
+  const pt = riverPathEl.getPointAtLength(t*riverLen);
+  const drop = $('#collectDrop');
+  const svgRect = $('#riverSvg').getBoundingClientRect();
+  const stageRect = $('#stage-collect').getBoundingClientRect();
+  drop.style.left = (pt.x - 23) + 'px';
+  drop.style.top = (pt.y - 30) + 'px';
+}
+const collectDrop = $('#collectDrop');
+function dragStart(e){ dragging=true; collectDrop.classList.remove('float'); }
+function dragMove(e){
+  if(!dragging) return;
+  const clientX = e.touches? e.touches[0].clientX : e.clientX;
+  const clientY = e.touches? e.touches[0].clientY : e.clientY;
+  const stageRect = $('#stage-collect').getBoundingClientRect();
+  let best=0, bestDist=Infinity;
+  for(let i=0;i<=100;i++){
+    const t=i/100;
+    const pt = riverPathEl.getPointAtLength(t*riverLen);
+    const dx = (stageRect.left+pt.x)-clientX, dy=(stageRect.top+pt.y)-clientY;
+    const dist = dx*dx+dy*dy;
+    if(dist<bestDist){bestDist=dist; best=t;}
+  }
+  dragProgress = Math.max(dragProgress, best);
+  placeDropOnPath(dragProgress);
+  if(dragProgress>0.92 && $('#collectNext').style.display==='none'){
+    $('#collectNext').style.display='inline-block';
+    addStar();
+    toast('🌊 Splash is back home in the ocean!');
+    speak("Splash made it back to the ocean! This step is called collection.");
+    collectDrop.classList.add('float');
+  }
+}
+function dragEnd(){ dragging=false; }
+collectDrop.addEventListener('mousedown', dragStart);
+collectDrop.addEventListener('touchstart', dragStart, {passive:true});
+window.addEventListener('mousemove', dragMove);
+window.addEventListener('touchmove', dragMove, {passive:true});
+window.addEventListener('mouseup', dragEnd);
+window.addEventListener('touchend', dragEnd);
+
+/* ============================================================
+   SCENE 6: SEQUENCE DRAG GAME
+============================================================ */
+const seqData = [
+  {id:'evap', emoji:'☀️💧', label:'Evaporation: Sun heats water into vapour', order:0},
+  {id:'cond', emoji:'☁️', label:'Condensation: Vapour cools into clouds', order:1},
+  {id:'precip', emoji:'🌧️', label:'Precipitation: Water falls as rain/snow', order:2},
+  {id:'collect', emoji:'🌊', label:'Collection: Water gathers in rivers & oceans', order:3},
+];
+let seqPlacedCorrect = 0;
+function buildSequenceGame(){
+  const pool = $('#seq-pool');
+  const slots = $('#seq-slots');
+  pool.innerHTML=''; slots.innerHTML='';
+  const shuffled = [...seqData].sort(()=>Math.random()-0.5);
+  shuffled.forEach(item=>{
+    const c = document.createElement('div');
+    c.className='seq-card';
+    c.draggable = true;
+    c.dataset.id = item.id;
+    c.dataset.order = item.order;
+    c.innerHTML = `<span class="emoji">${item.emoji}</span>${item.label}`;
+    c.addEventListener('dragstart', e=>{ e.dataTransfer.setData('text/plain', item.id); });
+    c.addEventListener('click', ()=>{ // tap-to-place fallback for touch
+      const emptySlot = slots.querySelector('.seq-slot-empty');
+      if(emptySlot && !c.classList.contains('placed')) dropIntoSlot(emptySlot, item.id, c);
+    });
+    pool.appendChild(c);
+  });
+  for(let i=0;i<4;i++){
+    const slot = document.createElement('div');
+    slot.className='seq-slot-empty';
+    slot.dataset.index = i;
+    slot.textContent = (i+1)+'️⃣';
+    slot.addEventListener('dragover', e=>e.preventDefault());
+    slot.addEventListener('drop', e=>{
+      e.preventDefault();
+      const id = e.dataTransfer.getData('text/plain');
+      const card = pool.querySelector(`.seq-card[data-id="${id}"]`);
+      if(card && !card.classList.contains('placed')) dropIntoSlot(slot, id, card);
+    });
+    slots.appendChild(slot);
+  }
+}
+function dropIntoSlot(slot, id, card){
+  const item = seqData.find(s=>s.id===id);
+  slot.className = 'seq-card';
+  slot.innerHTML = `<span class="emoji">${item.emoji}</span>${item.label}`;
+  slot.dataset.filled = id;
+  card.classList.add('placed');
+  checkSequence();
+}
+function checkSequence(){
+  const slots = $all('#seq-slots > div');
+  if(slots.some(s=>!s.dataset.filled)) return;
+  let correct = true;
+  slots.forEach((s,i)=>{
+    const item = seqData.find(d=>d.id===s.dataset.filled);
+    if(item.order !== i) correct = false;
+  });
+  const result = $('#seqResult');
+  result.style.display='block';
+  if(correct){
+    result.textContent = "🎉 Perfect order! Evaporation → Condensation → Precipitation → Collection. You've got it!";
+    addStar(2); addBadge();
+    confettiBurst();
+    $('#seqNext').style.display='inline-block';
+    speak("Perfect! You put the water cycle in the correct order!");
+  }else{
+    result.textContent = "🤔 Not quite the right order yet — look at Splash's journey again and try rearranging. Tap Restart to try again.";
+    const restartBtn = document.createElement('button');
+    restartBtn.className='btn secondary';
+    restartBtn.style.marginTop='8px';
+    restartBtn.textContent='🔄 Restart game';
+    restartBtn.onclick = buildSequenceGame;
+    result.appendChild(document.createElement('br'));
+    result.appendChild(restartBtn);
+  }
+}
+
+/* ============================================================
+   SCENE 7: REAL WORLD CHECKLIST
+============================================================ */
+$all('#realList li').forEach(li=>{
+  li.addEventListener('click', ()=>{
+    li.classList.toggle('done');
+    li.querySelector('.box').textContent = li.classList.contains('done') ? '✅' : '☐';
+    if(li.classList.contains('done')){ addStar(); toast('🌟 Mission noted!'); }
+  });
+});
+
+/* ============================================================
+   SCENE 8: FINAL QUIZ
+============================================================ */
+const quizData = [
+  {
+    q:"What gives energy for water to evaporate from the ocean?",
+    opts:[{t:'The Moon',c:false},{t:'The Sun',c:true},{t:'The Wind only',c:false}],
+    explain:"The Sun's heat is the main source of energy that turns liquid water into vapour."
+  },
+  {
+    q:"Clouds are made of...",
+    opts:[{t:'Cotton', c:false},{t:'Millions of tiny water droplets', c:true},{t:'Smoke', c:false}],
+    explain:"Clouds form when water vapour condenses (cools and clumps together) into tiny droplets."
+  },
+  {
+    q:"What is it called when water falls from clouds as rain, snow or hail?",
+    opts:[{t:'Precipitation', c:true},{t:'Evaporation', c:false},{t:'Collection', c:false}],
+    explain:"Precipitation is any form of water that falls from clouds to the ground."
+  },
+  {
+    q:"After it rains, where does the water eventually collect?",
+    opts:[{t:'It disappears forever', c:false},{t:'Rivers, lakes and oceans', c:true},{t:'It stays in the cloud', c:false}],
+    explain:"Water flows downhill into streams, rivers, and finally oceans and lakes — ready to evaporate again!"
+  }
+];
+let quizIndex = 0, quizScore = 0;
+function initQuiz(){
+  quizIndex = 0; quizScore = 0;
+  renderQuiz();
+}
+function renderQuiz(){
+  const box = $('#quizBox');
+  if(quizIndex >= quizData.length){
+    box.innerHTML = `<h3>Score: ${quizScore} / ${quizData.length}</h3>`;
+    if(quizScore>=3){
+      box.innerHTML += `<p class="speech-bubble">🏆 Amazing! You really understand the Water Cycle!</p>`;
+      addBadge();
+      finishAdventure();
+    }else{
+      box.innerHTML += `<p class="speech-bubble">Nice try! Let's review the journey once more before the celebration.</p>`;
+      const retry = document.createElement('button');
+      retry.className='btn secondary'; retry.textContent='🔁 Try the quiz again';
+      retry.onclick = initQuiz;
+      box.appendChild(retry);
+      const goCelebrate = document.createElement('button');
+      goCelebrate.className='btn accent'; goCelebrate.style.marginLeft='10px';
+      goCelebrate.textContent='Continue anyway →';
+      goCelebrate.onclick = finishAdventure;
+      box.appendChild(goCelebrate);
+    }
+    return;
+  }
+  $('#quizProgress').textContent = `Question ${quizIndex+1} of ${quizData.length}`;
+  const item = quizData[quizIndex];
+  box.innerHTML = `<p class="speech-bubble">${item.q}</p><div class="choices" id="quizChoices"></div>`;
+  const wrap = $('#quizChoices');
+  item.opts.forEach(o=>{
+    const c = document.createElement('div');
+    c.className='choice-card';
+    c.textContent = o.t;
+    c.addEventListener('click', ()=>{
+      $all('.choice-card', wrap).forEach(x=>x.style.pointerEvents='none');
+      if(o.c){
+        c.classList.add('correct');
+        quizScore++;
+        addStar();
+        toast('✅ Correct!');
+      }else{
+        c.classList.add('wrong');
+        wrap.querySelectorAll('.choice-card').forEach(x=>{
+          if(item.opts.find(op=>op.t===x.textContent && op.c)) x.classList.add('correct');
+        });
+        toast('Let\\'s learn why 👇');
+      }
+      const exp = document.createElement('p');
+      exp.className='speech-bubble small';
+      exp.style.marginTop='10px';
+      exp.textContent = item.explain;
+      box.appendChild(exp);
+      const nextBtn = document.createElement('button');
+      nextBtn.className='btn accent';
+      nextBtn.style.marginTop='10px';
+      nextBtn.textContent = 'Next question →';
+      nextBtn.onclick = ()=>{ quizIndex++; renderQuiz(); };
+      box.appendChild(nextBtn);
+    });
+    wrap.appendChild(c);
+  });
+}
+
+function finishAdventure(){
+  goScene(9);
+  buildFinalBadges();
+  confettiBurst();
+  setTimeout(confettiBurst, 500);
+  speak("Congratulations! You finished Splash's big journey and learned all about the water cycle!");
+}
+function buildFinalBadges(){
+  const wrap = $('#final-badges');
+  wrap.innerHTML='';
+  const list = [
+    {e:'☀️', l:'Evaporation Expert'},
+    {e:'☁️', l:'Cloud Builder'},
+    {e:'🌧️', l:'Rain Ranger'},
+    {e:'🌊', l:'Collection Captain'},
+    {e:'⭐', l: stars+' Stars earned'},
+  ];
+  list.forEach(b=>{
+    const el = document.createElement('div');
+    el.className='final-badge';
+    el.innerHTML = `<div class="emoji">${b.e}</div><div class="label">${b.l}</div>`;
+    wrap.appendChild(el);
+  });
+}
+
+/* ============================================================
+   INIT
+============================================================ */
+window.addEventListener('load', ()=>{
+  updateProgress();
+  buildSequenceGame();
+  setTimeout(initCollectionScene, 50);
+  window.addEventListener('resize', ()=>{ if(current===5) initCollectionScene(); });
+});
+
+/* Rebuild river path when entering scene 5, in case layout shifted */
+const origGoScene = goScene;
+goScene = function(n){
+  origGoScene(n);
+  if(n===5) setTimeout(initCollectionScene, 60);
+};
+</script>
+</body>
+</html>
