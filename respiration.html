@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>Oxy's Oxygen Express — The Respiration Adventure</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --sky1:#dff5ff;
+  --sky2:#bfe9ff;
+  --blood:#e63950;
+  --blood-dark:#b91f36;
+  --oxy:#3fb6ff;
+  --oxy-light:#a7ddff;
+  --co2:#8b9bb4;
+  --lung:#ffb0c0;
+  --lung-dark:#e88096;
+  --cream:#FFF8EC;
+  --ink:#1C2740;
+  --green:#49C78A;
+  --coral:#FF6B5B;
+  --coral-dark:#E1503F;
+  --navy2:#182747;
+  --font-display:'Baloo 2','Segoe UI Rounded','Comic Sans MS',sans-serif;
+  --font-body:'Nunito','Segoe UI',sans-serif;
+  --radius:22px;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  min-height:100vh;
+  background:linear-gradient(180deg,var(--sky1) 0%, var(--sky2) 100%);
+  font-family:var(--font-body);
+  color:var(--ink);
+  overflow-x:hidden;
+  -webkit-tap-highlight-color:transparent;
+}
+button{font-family:var(--font-body);cursor:pointer;}
+button:focus-visible,.tappable:focus-visible{outline:3px solid var(--oxy); outline-offset:3px;}
+h1,h2,h3{font-family:var(--font-display); margin:0;}
+.hidden{display:none !important;}
+#topbar{
+  position:sticky; top:0; z-index:50;
+  display:flex; align-items:center; gap:10px;
+  padding:10px 14px;
+  background:rgba(191,233,255,.9);
+  backdrop-filter:blur(6px);
+  border-bottom:2px solid rgba(0,0,0,.06);
+}
+#homeBtn,#backBtn{
+  background:#fff; border:2px solid rgba(0,0,0,.1); color:var(--ink);
+  width:40px;height:40px;border-radius:12px;font-size:18px;flex:0 0 auto; text-decoration:none;
+  display:flex;align-items:center;justify-content:center;
+}
+#progressWrap{flex:1; display:flex; align-items:center; gap:6px; overflow-x:auto; padding:4px 2px;}
+.dot{width:16px;height:16px;border-radius:50%;background:rgba(0,0,0,.12); flex:0 0 auto; border:2px solid rgba(0,0,0,.15); transition:all .3s;}
+.dot.done{background:var(--green); border-color:var(--green); box-shadow:0 0 8px var(--green);}
+.dot.current{background:var(--coral); border-color:var(--coral); transform:scale(1.3); box-shadow:0 0 8px var(--coral);}
+#starCount{display:flex; align-items:center; gap:4px; background:#fff; border:2px solid rgba(0,0,0,.1); border-radius:14px; padding:6px 12px; font-weight:800; font-family:var(--font-display); flex:0 0 auto;}
+#voiceBtn{
+  background:#fff; border:2px solid rgba(0,0,0,.1); color:var(--ink);
+  width:40px;height:40px;border-radius:12px;font-size:16px;flex:0 0 auto;
+}
+main{position:relative; z-index:1; max-width:720px; margin:0 auto; padding:18px 16px 60px;}
+.screen{display:none; animation:fadeUp .5s ease;}
+.screen.active{display:block;}
+@keyframes fadeUp{from{opacity:0; transform:translateY(16px);} to{opacity:1; transform:translateY(0);}}
+.card{
+  background:var(--cream); color:var(--ink); border-radius:var(--radius);
+  padding:20px; box-shadow:0 10px 30px rgba(0,0,0,.15);
+  margin-bottom:16px;
+}
+.eyebrow{
+  font-family:var(--font-display); font-weight:700; letter-spacing:.5px;
+  color:var(--blood); text-transform:uppercase; font-size:13px; margin-bottom:6px;
+}
+h2.title{font-size:26px; color:var(--ink); margin-bottom:8px;}
+p.lead{font-size:17px; line-height:1.5; margin:0 0 10px;}
+.oxy-row{display:flex; align-items:flex-end; gap:12px; margin:14px 0;}
+.oxy{width:74px;height:74px;flex:0 0 auto;}
+.bubble{
+  background:#fff; border:3px solid var(--oxy); border-radius:18px 18px 18px 4px;
+  padding:12px 16px; font-size:16px; line-height:1.4; font-weight:700; color:var(--ink);
+  position:relative; flex:1;
+}
+.mouth{transition:transform .15s ease;}
+.talking .mouth{animation:talk .3s infinite alternate;}
+@keyframes talk{from{transform:scaleY(1);} to{transform:scaleY(2.2);}}
+.blink{animation:blink 4s infinite;}
+@keyframes blink{0%,92%,100%{transform:scaleY(1);}96%{transform:scaleY(0.1);}}
+.btn{
+  font-family:var(--font-display); font-weight:700; font-size:17px;
+  border:none; border-radius:16px; padding:14px 22px; color:#fff;
+  background:var(--coral); box-shadow:0 5px 0 var(--coral-dark);
+  transition:transform .08s ease;
+}
+.btn:active{transform:translateY(4px); box-shadow:0 1px 0 var(--coral-dark);}
+.btn.secondary{background:var(--navy2); box-shadow:0 5px 0 #0c1730;}
+.btn.big{width:100%; font-size:20px; padding:18px;}
+.btn-row{display:flex; gap:12px; flex-wrap:wrap; margin-top:14px;}
+.btn:disabled{opacity:.4; box-shadow:none; transform:none;}
+.choices{display:grid; gap:10px; margin-top:12px;}
+.choice{
+  text-align:left; background:#fff; border:3px solid #e4dcc9; border-radius:14px;
+  padding:14px 16px; font-weight:700; font-size:16px; color:var(--ink);
+}
+.choice:hover{border-color:var(--oxy);}
+.choice.correct{background:#e6f9ef; border-color:var(--green); color:#1c6b45;}
+.choice.wrong{background:#fdeceb; border-color:var(--coral); color:#a3372a;}
+.lung-wrap{background:#fff; border-radius:18px; padding:10px; margin:14px 0; text-align:center;}
+#lungSvg{width:100%; max-width:340px; height:auto; display:block; margin:0 auto;}
+.lungShape{transition:transform .5s ease, fill .5s ease;}
+.diaphragm{transition:transform .5s ease;}
+.airParticle{transition:opacity .3s;}
+.tray{display:flex; align-items:center; justify-content:center; gap:14px; margin-top:14px; flex-wrap:wrap;}
+.hint{font-size:14px; color:#6b6350; font-weight:700;}
+.item-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(110px,1fr)); gap:10px; margin:14px 0;}
+.item{
+  background:#fff; border:3px solid #e4dcc9; border-radius:14px; padding:12px 6px;
+  text-align:center; font-weight:700;
+}
+.item .emoji{font-size:32px; display:block; margin-bottom:4px;}
+.item.correct{border-color:var(--green); background:#e6f9ef;}
+.item.wrong{border-color:var(--coral); background:#fdeceb;}
+.bin-row{display:flex; gap:10px; margin-top:8px;}
+.bin{flex:1; border-radius:14px; padding:14px 8px; text-align:center; font-family:var(--font-display); font-weight:700; border:3px dashed var(--oxy);}
+.bin.inhale{background:#e7f6ff;}
+.bin.exhale{background:#fff0f2;}
+.match-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin:14px 0;}
+.match-card{
+  aspect-ratio:1/1; background:var(--navy2); border-radius:12px; display:flex; align-items:center; justify-content:center;
+  font-size:24px; cursor:pointer; border:3px solid rgba(0,0,0,.1); color:#fff; text-align:center; padding:4px;
+}
+.match-card.flipped{background:#fff; color:var(--ink); font-size:13px; font-weight:800;}
+.match-card.locked{background:#e6f9ef; color:#1c6b45; border-color:var(--green); cursor:default;}
+.fill-track{background:#eee2cc; border-radius:10px; height:16px; overflow:hidden; margin-top:8px;}
+.fill-bar{background:var(--green); height:100%; width:0%; transition:width .4s ease;}
+.checklist{display:grid; gap:10px; margin-top:10px;}
+.check-item{display:flex; gap:10px; align-items:flex-start; background:#fff; border:3px solid #e4dcc9; border-radius:14px; padding:12px 14px; font-weight:700;}
+.check-item input{width:22px;height:22px; margin-top:2px; flex:0 0 auto;}
+#breathCounter{
+  text-align:center; font-family:var(--font-display); font-size:22px; margin:10px 0; color:var(--blood);
+}
+#confettiLayer{position:fixed; inset:0; pointer-events:none; z-index:200; overflow:hidden;}
+.confetto{position:absolute; top:-20px; width:10px; height:14px; opacity:.9; animation:fall linear forwards;}
+@keyframes fall{to{transform:translateY(110vh) rotate(540deg); opacity:0;}}
+.certificate{background:linear-gradient(135deg,#fff8ec,#ffe3e8); border:4px solid var(--blood); border-radius:20px; padding:22px; text-align:center;}
+.certificate h3{font-size:24px; color:var(--blood);}
+.cert-name{font-size:20px; font-weight:800; color:var(--ink); margin:10px 0;}
+footer.pagefooter{text-align:center; padding:10px; opacity:.6; font-size:13px;}
+@media (max-width:420px){
+  h2.title{font-size:22px;}
+  .match-grid{grid-template-columns:repeat(4,1fr);}
+}
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important;}
+}
+</style>
+</head>
+<body>
+<div id="confettiLayer"></div>
+
+<div id="topbar">
+  <a id="backBtn" href="index.html" title="Back to all topics" aria-label="Back to topics">←</a>
+  <button id="homeBtn" title="Restart from beginning" aria-label="Restart">🏠</button>
+  <div id="progressWrap" role="list" aria-label="Lesson progress"></div>
+  <div id="starCount">⭐ <span id="starNum">0</span></div>
+  <button id="voiceBtn" title="Toggle Oxy's voice" aria-label="Toggle voice">🔊</button>
+</div>
+
+<main>
+
+<!-- SCREEN 0: TITLE -->
+<section class="screen active" id="screen-title">
+  <div class="card" style="text-align:center;">
+    <svg viewBox="0 0 200 200" style="width:140px;margin:0 auto;display:block;" aria-hidden="true">
+      <circle cx="100" cy="100" r="80" fill="#a7ddff"/>
+      <circle cx="100" cy="100" r="80" fill="none" stroke="#3fb6ff" stroke-width="6"/>
+      <circle cx="70" cy="90" r="10" fill="#1C2740" class="blink"/>
+      <circle cx="130" cy="90" r="10" fill="#1C2740" class="blink"/>
+      <path d="M75,130 Q100,150 125,130" stroke="#1C2740" stroke-width="6" fill="none" stroke-linecap="round"/>
+      <text x="100" y="60" font-size="26" text-anchor="middle" font-weight="800" fill="#fff">O₂</text>
+    </svg>
+    <div class="eyebrow">Class 6 · Science</div>
+    <h1 class="title" style="font-size:30px;">Oxy's Oxygen Express 🫁</h1>
+    <p class="lead">Meet Oxy, a friendly oxygen bubble! Ride along as we travel from the air, through your nose, into your lungs, and all the way to your blood.</p>
+    <button class="btn big" id="startBtn">Start the Journey →</button>
+  </div>
+</section>
+
+<!-- SCREEN 1: HOOK -->
+<section class="screen" id="screen-hook">
+  <div class="card">
+    <div class="eyebrow">Stage 1 · A Mystery</div>
+    <h2 class="title">Hold Your Breath!</h2>
+    <p class="lead">Try this: take a deep breath and hold it for as long as you comfortably can. Notice how quickly your body <em>demands</em> you breathe again?</p>
+    <div id="breathCounter">Hold... <span id="counterNum">0</span>s</div>
+    <div class="btn-row" style="justify-content:center;">
+      <button class="btn" id="holdStartBtn">Start Holding</button>
+      <button class="btn secondary hidden" id="holdStopBtn">I Need Air!</button>
+    </div>
+    <div id="hookQuestion" class="hidden">
+      <p class="lead" style="margin-top:16px;"><strong>Why do you think your body forces you to breathe?</strong></p>
+      <div class="choices" id="hookChoices"></div>
+    </div>
+    <div class="oxy-row hidden" id="hookOxyRow">
+      <div class="oxy"><svg viewBox="0 0 200 200"><circle cx="100" cy="100" r="80" fill="#a7ddff"/><circle cx="70" cy="90" r="10" fill="#1C2740" class="blink"/><circle cx="130" cy="90" r="10" fill="#1C2740" class="blink"/><path class="mouth" d="M75,130 Q100,150 125,130" stroke="#1C2740" stroke-width="6" fill="none" stroke-linecap="round"/></svg></div>
+      <div class="bubble" id="hookBubble">Every part of your body — your brain, muscles, even your heart — needs a constant supply of oxygen to work. Let's find out how it gets there!</div>
+    </div>
+    <button class="btn big hidden" id="hookNextBtn">Meet Oxy →</button>
+  </div>
+</section>
+
+<!-- SCREEN 2: MEET / EXPLAIN -->
+<section class="screen" id="screen-meet">
+  <div class="card">
+    <div class="eyebrow">Stage 2 · Discover</div>
+    <h2 class="title">The Journey Begins</h2>
+    <p class="lead">Air enters through your <strong>nose</strong> (which warms and filters it), travels down your <strong>windpipe</strong> (trachea), and branches into your two <strong>lungs</strong> — spongy, balloon-like organs in your chest.</p>
+    <div class="lung-wrap">
+      <svg viewBox="0 0 240 220" id="meetSvg" aria-hidden="true">
+        <ellipse cx="120" cy="30" rx="14" ry="18" fill="#ffd9e1" stroke="#e88096" stroke-width="3"/>
+        <line x1="120" y1="48" x2="120" y2="80" stroke="#e88096" stroke-width="8" stroke-linecap="round"/>
+        <line x1="120" y1="80" x2="80" y2="110" stroke="#e88096" stroke-width="6" stroke-linecap="round"/>
+        <line x1="120" y1="80" x2="160" y2="110" stroke="#e88096" stroke-width="6" stroke-linecap="round"/>
+        <path d="M80,110 C40,120 40,190 70,200 C95,208 95,150 95,120 Z" fill="var(--lung)" stroke="var(--lung-dark)" stroke-width="3"/>
+        <path d="M160,110 C200,120 200,190 170,200 C145,208 145,150 145,120 Z" fill="var(--lung)" stroke="var(--lung-dark)" stroke-width="3"/>
+        <circle id="meetDot1" cx="120" cy="15" r="6" fill="var(--oxy)"/>
+        <text x="120" y="10" font-size="10" text-anchor="middle" fill="var(--ink)" font-weight="800">Nose</text>
+        <text x="120" y="70" font-size="9" text-anchor="middle" fill="var(--ink)" font-weight="800">Windpipe</text>
+        <text x="70" y="160" font-size="9" text-anchor="middle" fill="var(--ink)" font-weight="800">Lung</text>
+        <text x="170" y="160" font-size="9" text-anchor="middle" fill="var(--ink)" font-weight="800">Lung</text>
+      </svg>
+    </div>
+    <div class="oxy-row">
+      <div class="oxy"><svg viewBox="0 0 200 200"><circle cx="100" cy="100" r="80" fill="#a7ddff"/><circle cx="70" cy="90" r="10" fill="#1C2740"/><circle cx="130" cy="90" r="10" fill="#1C2740"/><path d="M75,125 Q100,110 125,125" stroke="#1C2740" stroke-width="6" fill="none" stroke-linecap="round"/></svg></div>
+      <div class="bubble">Inside each lung are millions of tiny sacs called <strong>alveoli</strong> — that's where I hop out of the air and into your blood! Want to try working the lungs yourself?</div>
+    </div>
+    <button class="btn big" id="meetNextBtn">Work the Lungs →</button>
+  </div>
+</section>
+
+<!-- SCREEN 3: BUILD / INTERACT (breathing model) -->
+<section class="screen" id="screen-breathe">
+  <div class="card">
+    <div class="eyebrow">Stage 3 · Try It</div>
+    <h2 class="title">Be the Diaphragm!</h2>
+    <p class="lead" id="breatheInstruction">Below your lungs is a muscle called the <strong>diaphragm</strong>. Tap "Inhale" to pull it down and let air rush in, then "Exhale" to push it up and push air out.</p>
+    <div class="lung-wrap">
+      <svg viewBox="0 0 240 260" id="breatheSvg" aria-hidden="true">
+        <rect x="10" y="10" width="220" height="200" rx="16" fill="#eaf6ff" stroke="#bcdff5" stroke-width="2"/>
+        <line x1="120" y1="20" x2="120" y2="50" stroke="#e88096" stroke-width="8" stroke-linecap="round"/>
+        <line x1="120" y1="50" x2="85" y2="75" stroke="#e88096" stroke-width="6" stroke-linecap="round"/>
+        <line x1="120" y1="50" x2="155" y2="75" stroke="#e88096" stroke-width="6" stroke-linecap="round"/>
+        <g id="lungGroup" class="lungShape">
+          <path d="M85,75 C50,85 50,150 75,165 C98,175 98,120 98,90 Z" fill="var(--lung)" stroke="var(--lung-dark)" stroke-width="3"/>
+          <path d="M155,75 C190,85 190,150 165,165 C142,175 142,120 142,90 Z" fill="var(--lung)" stroke="var(--lung-dark)" stroke-width="3"/>
+        </g>
+        <path id="diaphragmPath" class="diaphragm" d="M40,175 Q120,160 200,175 L200,195 Q120,180 40,195 Z" fill="#f2a3ac" stroke="#c96e78" stroke-width="2"/>
+        <text x="120" y="230" font-size="12" text-anchor="middle" fill="var(--ink)" font-weight="800">Diaphragm muscle</text>
+        <g id="breatheParticles"></g>
+      </svg>
+    </div>
+    <div class="btn-row" style="justify-content:center;">
+      <button class="btn" id="inhaleBtn">Inhale ⬇️</button>
+      <button class="btn secondary" id="exhaleBtn">Exhale ⬆️</button>
+    </div>
+    <div class="oxy-row">
+      <div class="oxy"><svg viewBox="0 0 200 200"><circle cx="100" cy="100" r="80" fill="#a7ddff"/><circle cx="70" cy="90" r="10" fill="#1C2740"/><circle cx="130" cy="90" r="10" fill="#1C2740"/><path class="mouth" id="breatheMouth" d="M75,130 Q100,150 125,130" stroke="#1C2740" stroke-width="6" fill="none" stroke-linecap="round"/></svg></div>
+      <div class="bubble" id="breatheBubble">Tap Inhale — watch the diaphragm move down and the lungs fill up like balloons!</div>
+    </div>
+    <button class="btn big hidden" id="breatheNextBtn">Got it! Continue →</button>
+  </div>
+</section>
+
+<!-- SCREEN 4: SORT (inhale vs exhale gases) -->
+<section class="screen" id="screen-sort">
+  <div class="card">
+    <div class="eyebrow">Stage 4 · Sort It</div>
+    <h2 class="title">In or Out?</h2>
+    <p class="lead">When you breathe <strong>in</strong>, your body takes in oxygen-rich air. When you breathe <strong>out</strong>, your body releases air with more carbon dioxide (a waste gas your cells don't need). Sort each one!</p>
+    <p class="hint" id="sortStatus">Tap a card, then tap the correct lung.</p>
+    <div class="item-grid" id="itemGrid"></div>
+    <div class="bin-row">
+      <button class="bin inhale" id="binInhale">⬇️ Breathe In<br><span style="font-weight:400;font-size:12px;">taken from air</span></button>
+      <button class="bin exhale" id="binExhale">⬆️ Breathe Out<br><span style="font-weight:400;font-size:12px;">released as waste</span></button>
+    </div>
+    <div class="fill-track"><div class="fill-bar" id="sortFill"></div></div>
+    <button class="btn big hidden" id="sortNextBtn" style="margin-top:14px;">Nice sorting! Continue →</button>
+  </div>
+</section>
+
+<!-- SCREEN 5: MATCH (organs) -->
+<section class="screen" id="screen-match">
+  <div class="card">
+    <div class="eyebrow">Stage 5 · Match It</div>
+    <h2 class="title">Match the Organ to Its Job</h2>
+    <p class="lead">Every part of your breathing system — together called the <strong>respiratory system</strong> — has a special job. Flip the cards to match organ with job.</p>
+    <div class="match-grid" id="matchGrid"></div>
+    <button class="btn big hidden" id="matchNextBtn">Great matching! Continue →</button>
+  </div>
+</section>
+
+<!-- SCREEN 6: REAL WORLD -->
+<section class="screen" id="screen-realworld">
+  <div class="card">
+    <div class="eyebrow">Stage 6 · Explore</div>
+    <h2 class="title">Try These at Home</h2>
+    <p class="lead">Time to notice your own breathing. Try each one and tick it off.</p>
+    <div class="checklist" id="realWorldList"></div>
+    <button class="btn big" id="realWorldNextBtn" style="margin-top:14px;" disabled>Continue →</button>
+  </div>
+</section>
+
+<!-- SCREEN 7: QUIZ -->
+<section class="screen" id="screen-quiz">
+  <div class="card">
+    <div class="eyebrow">Stage 7 · Show What You Know</div>
+    <h2 class="title">Question <span id="quizNum">1</span> of <span id="quizTotal">6</span></h2>
+    <div class="fill-track"><div class="fill-bar" id="quizFill"></div></div>
+    <div id="quizBody" style="margin-top:14px;"></div>
+  </div>
+</section>
+
+<!-- SCREEN 8: CELEBRATION -->
+<section class="screen" id="screen-end">
+  <div class="card" style="text-align:center;">
+    <div class="eyebrow">Mission Complete</div>
+    <h2 class="title">You Rode the Oxygen Express! 🎉</h2>
+    <p class="lead" id="endSummary">You explored the whole journey of a breath, from your nose to your blood.</p>
+    <div class="certificate">
+      <h3>🫁 Certificate of Breath Mastery 🫁</h3>
+      <div class="cert-name" id="certName">Awarded to a brilliant young scientist</div>
+      <p style="margin:0;">for understanding how the lungs, diaphragm, and blood<br>work together to bring oxygen to every cell.</p>
+    </div>
+    <div class="oxy-row">
+      <div class="oxy"><svg viewBox="0 0 200 200"><circle cx="100" cy="100" r="80" fill="#a7ddff"/><circle cx="70" cy="90" r="10" fill="#1C2740"/><circle cx="130" cy="90" r="10" fill="#1C2740"/><path d="M75,120 Q100,150 125,120" stroke="#1C2740" stroke-width="6" fill="none" stroke-linecap="round"/></svg></div>
+      <div class="bubble">Now try explaining to someone at home: <em>why does your body need to breathe out carbon dioxide?</em> Teaching it helps you remember it!</div>
+    </div>
+    <div class="btn-row" style="justify-content:center;">
+      <button class="btn big" id="playAgainBtn">Play Again</button>
+      <a class="btn big secondary" href="index.html" style="text-decoration:none; display:flex; align-items:center; justify-content:center;">Back to Topics</a>
+    </div>
+  </div>
+</section>
+
+</main>
+<footer class="pagefooter">Science Adventure · Class 6 · Telangana State</footer>
+
+<script>
+(function(){
+"use strict";
+const $ = (sel,root=document)=>root.querySelector(sel);
+const $$ = (sel,root=document)=>Array.from(root.querySelectorAll(sel));
+const STAGES = ["title","hook","meet","breathe","sort","match","realworld","quiz","end"];
+let currentStageIdx = 0;
+let voiceOn = true;
+
+const STORAGE_KEY = "respirationProgress_v1";
+function loadProgress(){
+  try{ const raw = localStorage.getItem(STORAGE_KEY); if(raw) return JSON.parse(raw); }catch(e){}
+  return {stars:0, voiceOn:true};
+}
+function saveProgress(){ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(progress)); }catch(e){} }
+let progress = loadProgress();
+voiceOn = progress.voiceOn !== false;
+
+function renderDots(){
+  const wrap = $("#progressWrap");
+  wrap.innerHTML = "";
+  STAGES.forEach((s,i)=>{
+    if(s==="title") return;
+    const d = document.createElement("div");
+    d.className = "dot" + (i<currentStageIdx?" done":"") + (i===currentStageIdx?" current":"");
+    wrap.appendChild(d);
+  });
+  $("#starNum").textContent = progress.stars;
+}
+function goToStage(name){
+  const idx = STAGES.indexOf(name);
+  if(idx<0) return;
+  currentStageIdx = idx;
+  STAGES.forEach(s=>{
+    const el = $("#screen-"+s);
+    if(el) el.classList.toggle("active", s===name);
+  });
+  renderDots();
+  window.scrollTo({top:0, behavior:"smooth"});
+  if(name==="end"){
+    try{ localStorage.setItem("respiration.html_completed","true"); }catch(e){}
+  }
+}
+function addStar(n=1){ progress.stars += n; saveProgress(); renderDots(); }
+
+function speak(text){
+  if(!voiceOn) return;
+  try{
+    if(!("speechSynthesis" in window)) return;
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.rate = 0.95; u.pitch = 1.1;
+    window.speechSynthesis.speak(u);
+  }catch(e){}
+}
+function oxySay(bubbleEl, text, mouthEl){
+  bubbleEl.textContent = text;
+  speak(text);
+  if(mouthEl){
+    mouthEl.parentElement.classList.add("talking");
+    setTimeout(()=>mouthEl.parentElement.classList.remove("talking"), Math.min(4000, text.length*55));
+  }
+}
+$("#voiceBtn").addEventListener("click", ()=>{
+  voiceOn = !voiceOn; progress.voiceOn = voiceOn; saveProgress();
+  $("#voiceBtn").textContent = voiceOn ? "🔊" : "🔈";
+  if(!voiceOn) try{window.speechSynthesis.cancel();}catch(e){}
+});
+$("#voiceBtn").textContent = voiceOn ? "🔊" : "🔈";
+
+function burstConfetti(count=60){
+  const colors = ["#3fb6ff","#e63950","#49C78A","#ffb0c0","#a7ddff"];
+  const layer = $("#confettiLayer");
+  for(let i=0;i<count;i++){
+    const c = document.createElement("div");
+    c.className = "confetto";
+    c.style.left = Math.random()*100+"%";
+    c.style.background = colors[Math.floor(Math.random()*colors.length)];
+    c.style.animationDuration = (2+Math.random()*1.5)+"s";
+    c.style.transform = `rotate(${Math.random()*360}deg)`;
+    layer.appendChild(c);
+    setTimeout(()=>c.remove(), 3600);
+  }
+}
+
+$("#homeBtn").addEventListener("click", ()=>{
+  if(confirm("Go back to the very start? Your stars stay saved.")){ goToStage("title"); }
+});
+
+/* TITLE */
+$("#startBtn").addEventListener("click", ()=> goToStage("hook"));
+
+/* HOOK: breath-hold timer */
+(function(){
+  let timer = null, secs = 0;
+  const counterNum = $("#counterNum");
+  $("#holdStartBtn").addEventListener("click", ()=>{
+    secs = 0; counterNum.textContent = secs;
+    $("#holdStartBtn").classList.add("hidden");
+    $("#holdStopBtn").classList.remove("hidden");
+    timer = setInterval(()=>{ secs++; counterNum.textContent = secs; }, 1000);
+  });
+  $("#holdStopBtn").addEventListener("click", ()=>{
+    clearInterval(timer);
+    $("#holdStopBtn").classList.add("hidden");
+    $("#hookQuestion").classList.remove("hidden");
+    renderHookChoices();
+  });
+  function renderHookChoices(){
+    const wrap = $("#hookChoices");
+    if(wrap.children.length) return;
+    const opts = [
+      "Your body just likes to make you uncomfortable",
+      "Your cells urgently need fresh oxygen to keep working",
+      "Holding your breath makes your body too heavy",
+      "It's only a habit, not really necessary"
+    ];
+    opts.forEach((opt,i)=>{
+      const b = document.createElement("button");
+      b.className = "choice";
+      b.textContent = opt;
+      b.addEventListener("click", ()=>{
+        $$(".choice", wrap).forEach(c=>c.disabled = true);
+        if(i===1){
+          b.classList.add("correct");
+        } else {
+          b.classList.add("wrong");
+          wrap.children[1].classList.add("correct");
+        }
+        $("#hookOxyRow").classList.remove("hidden");
+        oxySay($("#hookBubble"), "Every part of your body — your brain, muscles, even your heart — needs a constant supply of oxygen to work. Let's find out how it gets there!");
+        $("#hookNextBtn").classList.remove("hidden");
+        addStar(1);
+      });
+      wrap.appendChild(b);
+    });
+  }
+  $("#hookNextBtn").addEventListener("click", ()=> goToStage("meet"));
+})();
+
+/* MEET */
+(function(){
+  $("#meetNextBtn").addEventListener("click", ()=> goToStage("breathe"));
+})();
+
+/* BREATHE (diaphragm model) */
+(function(){
+  const lungGroup = $("#lungGroup");
+  const diaphragm = $("#diaphragmPath");
+  const particles = $("#breatheParticles");
+  const bubble = $("#breatheBubble");
+  const mouth = $("#breatheMouth");
+  let inhaled = false;
+  let inhaleCount = 0, exhaleCount = 0;
+  let celebrated = false;
+
+  function setState(isInhale){
+    if(isInhale){
+      lungGroup.style.transform = "scale(1.18)";
+      lungGroup.style.transformOrigin = "120px 120px";
+      diaphragm.setAttribute("d","M40,190 Q120,178 200,190 L200,210 Q120,198 40,210 Z");
+      spawnParticles(true);
+      oxySay(bubble, "In it comes! Notice the diaphragm pulled DOWN and the lungs got bigger, sucking air in.", mouth);
+    } else {
+      lungGroup.style.transform = "scale(0.92)";
+      lungGroup.style.transformOrigin = "120px 120px";
+      diaphragm.setAttribute("d","M40,160 Q120,148 200,160 L200,180 Q120,168 40,180 Z");
+      spawnParticles(false);
+      oxySay(bubble, "And out it goes! The diaphragm pushed UP, squeezing the lungs smaller and pushing air (with carbon dioxide) out.", mouth);
+    }
+  }
+  function spawnParticles(isInhale){
+    particles.innerHTML = "";
+    for(let i=0;i<4;i++){
+      const c = document.createElementNS("http://www.w3.org/2000/svg","circle");
+      c.setAttribute("r","5");
+      c.setAttribute("fill", isInhale ? "#3fb6ff" : "#8b9bb4");
+      c.setAttribute("class","airParticle");
+      const startY = isInhale ? 20 : 90;
+      const endY = isInhale ? 90 : 20;
+      c.setAttribute("cx", 100 + i*15);
+      c.setAttribute("cy", startY);
+      const anim = document.createElementNS("http://www.w3.org/2000/svg","animate");
+      anim.setAttribute("attributeName","cy");
+      anim.setAttribute("from", startY);
+      anim.setAttribute("to", endY);
+      anim.setAttribute("dur","1s");
+      anim.setAttribute("begin",(i*0.15)+"s");
+      anim.setAttribute("fill","freeze");
+      c.appendChild(anim);
+      particles.appendChild(c);
+    }
+    setTimeout(()=>{ particles.innerHTML = ""; }, 1400);
+  }
+  $("#inhaleBtn").addEventListener("click", ()=>{
+    inhaled = true; inhaleCount++;
+    setState(true);
+    checkDone();
+  });
+  $("#exhaleBtn").addEventListener("click", ()=>{
+    inhaled = false; exhaleCount++;
+    setState(false);
+    checkDone();
+  });
+  function checkDone(){
+    if(inhaleCount>=2 && exhaleCount>=2 && !celebrated){
+      celebrated = true;
+      addStar(2);
+      $("#breatheNextBtn").classList.remove("hidden");
+      $("#breatheInstruction").textContent = "Perfect! That back-and-forth movement, many times a minute, is how you breathe all day — even while you sleep!";
+    }
+  }
+  $("#breatheNextBtn").addEventListener("click", ()=> goToStage("sort"));
+})();
+
+/* SORT: inhale vs exhale */
+(function(){
+  const items = [
+    {name:"Oxygen (O₂)", emoji:"🫧", type:"in"},
+    {name:"Fresh cool air", emoji:"❄️", type:"in"},
+    {name:"Carbon dioxide (CO₂)", emoji:"☁️", type:"out"},
+    {name:"Warm moist air", emoji:"💨", type:"out"},
+    {name:"Air your cells need", emoji:"✨", type:"in"},
+    {name:"Waste gas from cells", emoji:"🗑️", type:"out"}
+  ];
+  let selected = null, correctCount = 0, done = 0;
+  const grid = $("#itemGrid");
+  const status = $("#sortStatus");
+  items.forEach((it,i)=>{
+    const d = document.createElement("div");
+    d.className = "item";
+    d.dataset.idx = i;
+    d.innerHTML = `<span class="emoji">${it.emoji}</span>${it.name}`;
+    d.addEventListener("click", ()=>{
+      if(d.classList.contains("correct")) return;
+      $$(".item", grid).forEach(x=>x.style.outline="none");
+      selected = i;
+      d.style.outline = "3px solid #3fb6ff";
+    });
+    grid.appendChild(d);
+  });
+  function handleBin(type){
+    if(selected===null){ status.textContent = "Tap a card first, then choose Breathe In or Breathe Out."; return; }
+    const idx = selected;
+    const el = $(`.item[data-idx="${idx}"]`, grid);
+    const it = items[idx];
+    if(el.classList.contains("correct")) return;
+    if(it.type === type){
+      el.classList.add("correct"); correctCount++;
+      status.textContent = `Right! "${it.name}" belongs with breathing ${type==="in"?"in":"out"}.`;
+      addStar(0.5);
+    } else {
+      el.classList.add("wrong");
+      status.textContent = `Not quite — "${it.name}" actually goes with breathing ${it.type==="in"?"in":"out"}.`;
+      setTimeout(()=>el.classList.remove("wrong"), 1400);
+    }
+    done++;
+    $("#sortFill").style.width = Math.round((done/items.length)*100)+"%";
+    selected = null;
+    if(done>=items.length){
+      setTimeout(()=>{
+        status.textContent = `All sorted! You got ${correctCount} of ${items.length} on the first try.`;
+        $("#sortNextBtn").classList.remove("hidden");
+      }, 300);
+    }
+  }
+  $("#binInhale").addEventListener("click", ()=>handleBin("in"));
+  $("#binExhale").addEventListener("click", ()=>handleBin("out"));
+  $("#sortNextBtn").addEventListener("click", ()=> goToStage("match"));
+})();
+
+/* MATCH: organs to jobs */
+(function(){
+  const pairs = [
+    {id:"nose", face:"👃 Nose", label:"Warms & filters air"},
+    {id:"windpipe", face:"〰️ Windpipe", label:"Carries air to lungs"},
+    {id:"lungs", face:"🫁 Lungs", label:"Spongy air-filled organs"},
+    {id:"diaphragm", face:"💪 Diaphragm", label:"Muscle that pumps breathing"}
+  ];
+  let cards = [];
+  pairs.forEach(p=>{
+    cards.push({key:p.id, kind:"organ", content:p.face});
+    cards.push({key:p.id, kind:"job", content:p.label});
+  });
+  for(let i=cards.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [cards[i],cards[j]] = [cards[j],cards[i]];
+  }
+  const grid = $("#matchGrid");
+  let flipped = [], lockedCount = 0, busy = false;
+  cards.forEach((c,i)=>{
+    const el = document.createElement("div");
+    el.className = "match-card";
+    el.dataset.idx = i;
+    el.textContent = "?";
+    el.addEventListener("click", ()=>{
+      if(busy || el.classList.contains("locked") || flipped.includes(i)) return;
+      el.classList.add("flipped");
+      el.textContent = c.content;
+      flipped.push(i);
+      if(flipped.length===2){
+        busy = true;
+        const [a,b] = flipped;
+        const ca = cards[a], cb = cards[b];
+        if(ca.key===cb.key && ca.kind!==cb.kind){
+          setTimeout(()=>{
+            $(`.match-card[data-idx="${a}"]`, grid).classList.add("locked");
+            $(`.match-card[data-idx="${b}"]`, grid).classList.add("locked");
+            lockedCount += 2; addStar(0.5);
+            flipped = []; busy = false;
+            if(lockedCount>=cards.length){ $("#matchNextBtn").classList.remove("hidden"); }
+          }, 500);
+        } else {
+          setTimeout(()=>{
+            [a,b].forEach(idx=>{
+              const cardEl = $(`.match-card[data-idx="${idx}"]`, grid);
+              cardEl.classList.remove("flipped");
+              cardEl.textContent = "?";
+            });
+            flipped = []; busy = false;
+          }, 900);
+        }
+      }
+    });
+    grid.appendChild(el);
+  });
+  $("#matchNextBtn").addEventListener("click", ()=> goToStage("realworld"));
+})();
+
+/* REAL WORLD */
+(function(){
+  const tasks = [
+    "Sit quietly and count how many breaths you take in one minute.",
+    "Do 10 jumping jacks, then count your breaths again — notice the difference!",
+    "Breathe onto a cold spoon or mirror and watch it fog up (that's water vapour you breathe out).",
+    "Ask an adult to show you their chest rising and falling as they breathe."
+  ];
+  const list = $("#realWorldList");
+  tasks.forEach((t,i)=>{
+    const row = document.createElement("label");
+    row.className = "check-item";
+    row.innerHTML = `<input type="checkbox" id="rw${i}"><span>${t}</span>`;
+    list.appendChild(row);
+    row.querySelector("input").addEventListener("change", updateRW);
+  });
+  function updateRW(){
+    const checked = $$('input[type="checkbox"]', list).filter(c=>c.checked).length;
+    $("#realWorldNextBtn").disabled = checked < 2;
+    if(checked>=2 && !$("#realWorldNextBtn").dataset.starred){
+      addStar(1);
+      $("#realWorldNextBtn").dataset.starred = "1";
+    }
+  }
+  $("#realWorldNextBtn").addEventListener("click", ()=> goToStage("quiz"));
+})();
+
+/* QUIZ */
+(function(){
+  const questions = [
+    {q:"What gas do we mainly breathe IN that our cells need?", opts:["Carbon dioxide","Oxygen","Nitrogen only","Smoke"], correct:1,
+      explain:"Our cells use oxygen to release energy from food — that's why we constantly breathe it in."},
+    {q:"What gas do we mainly breathe OUT as waste?", opts:["Oxygen","Water only","Carbon dioxide","Helium"], correct:2,
+      explain:"Carbon dioxide is a waste gas our cells produce, and our lungs release it when we exhale."},
+    {q:"What is the muscle below the lungs that helps us breathe called?", opts:["Bicep","Diaphragm","Trachea","Alveoli"], correct:1,
+      explain:"The diaphragm moves down when we inhale and up when we exhale, changing the space for our lungs."},
+    {q:"Where does oxygen pass into the blood?", opts:["Nose hair","Windpipe","Tiny air sacs called alveoli","Diaphragm"], correct:2,
+      explain:"Millions of tiny alveoli in the lungs are where oxygen crosses into the bloodstream."},
+    {q:"Why does the nose warm and filter the air we breathe?", opts:["To make breathing louder","To protect the delicate lungs from cold, dusty air","It doesn't actually do that","To make air taste better"], correct:1,
+      explain:"The nose conditions the air so it's cleaner and closer to body temperature before it reaches the lungs."},
+    {q:"True or False: We breathe faster after exercise because our cells need more oxygen.", opts:["True","False"], correct:0,
+      explain:"Exercising muscles use more energy, so they need extra oxygen — our breathing speeds up to supply it."}
+  ];
+  let qIndex = 0;
+  const body = $("#quizBody");
+  $("#quizTotal").textContent = questions.length;
+  function renderQuestion(){
+    const q = questions[qIndex];
+    $("#quizNum").textContent = qIndex+1;
+    $("#quizFill").style.width = Math.round((qIndex/questions.length)*100)+"%";
+    body.innerHTML = "";
+    const qEl = document.createElement("p");
+    qEl.className = "lead"; qEl.style.fontWeight = "800";
+    qEl.textContent = q.q;
+    body.appendChild(qEl);
+    const choicesWrap = document.createElement("div");
+    choicesWrap.className = "choices";
+    let answered = false;
+    q.opts.forEach((opt,i)=>{
+      const b = document.createElement("button");
+      b.className = "choice"; b.textContent = opt;
+      b.addEventListener("click", ()=>{
+        if(answered) return;
+        if(i===q.correct){
+          answered = true;
+          b.classList.add("correct");
+          const fb = document.createElement("div");
+          fb.className = "bubble"; fb.style.marginTop = "10px";
+          fb.textContent = "✔ " + q.explain;
+          body.appendChild(fb);
+          speak(q.explain);
+          addStar(1);
+          const nextBtn = document.createElement("button");
+          nextBtn.className = "btn big"; nextBtn.style.marginTop = "14px";
+          nextBtn.textContent = (qIndex < questions.length-1) ? "Next question →" : "See my results →";
+          nextBtn.addEventListener("click", ()=>{
+            qIndex++;
+            if(qIndex < questions.length){ renderQuestion(); } else { finishQuiz(); }
+          });
+          body.appendChild(nextBtn);
+        } else {
+          b.classList.add("wrong"); b.disabled = true;
+        }
+      });
+      choicesWrap.appendChild(b);
+    });
+    body.appendChild(choicesWrap);
+  }
+  function finishQuiz(){
+    $("#quizFill").style.width = "100%";
+    $("#certName").textContent = "Awarded to a brilliant young scientist";
+    goToStage("end");
+    burstConfetti(70);
+  }
+  document.addEventListener("stageentered:quiz", renderQuestion);
+  const origGoToStage = goToStage;
+  window.__respGoToStage = origGoToStage;
+  const observer = new MutationObserver(()=>{});
+  $("#screen-quiz");
+  // hook into stage change manually since we don't have a pub/sub system
+  const btns = ["#realWorldNextBtn"];
+  $("#realWorldNextBtn").addEventListener("click", ()=>{ setTimeout(renderQuestion, 50); });
+})();
+
+$("#playAgainBtn").addEventListener("click", ()=>{
+  location.reload();
+});
+
+renderDots();
+})();
+</script>
+</body>
+</html>
