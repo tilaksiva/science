@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>Tez's Motion Marathon — The Motion Adventure</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --sky1:#fff3e0;
+  --sky2:#ffe0b2;
+  --race:#ff5252;
+  --race-dark:#c62828;
+  --track:#ffb74d;
+  --track-dark:#e65100;
+  --cream:#FFFBF3;
+  --ink:#1C2740;
+  --green:#49C78A;
+  --coral:#FF6B5B;
+  --coral-dark:#E1503F;
+  --navy2:#26150f;
+  --font-display:'Baloo 2','Segoe UI Rounded','Comic Sans MS',sans-serif;
+  --font-body:'Nunito','Segoe UI',sans-serif;
+  --radius:22px;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  min-height:100vh;
+  background:linear-gradient(180deg,var(--sky1) 0%, var(--sky2) 100%);
+  font-family:var(--font-body);
+  color:var(--ink);
+  overflow-x:hidden;
+  -webkit-tap-highlight-color:transparent;
+}
+button{font-family:var(--font-body);cursor:pointer;}
+button:focus-visible,.tappable:focus-visible{outline:3px solid var(--race); outline-offset:3px;}
+h1,h2,h3{font-family:var(--font-display); margin:0;}
+.hidden{display:none !important;}
+#topbar{
+  position:sticky; top:0; z-index:50;
+  display:flex; align-items:center; gap:10px;
+  padding:10px 14px;
+  background:rgba(255,224,178,.9);
+  backdrop-filter:blur(6px);
+  border-bottom:2px solid rgba(0,0,0,.06);
+}
+#homeBtn,#backBtn{
+  background:#fff; border:2px solid rgba(0,0,0,.1); color:var(--ink);
+  width:40px;height:40px;border-radius:12px;font-size:18px;flex:0 0 auto; text-decoration:none;
+  display:flex;align-items:center;justify-content:center;
+}
+#progressWrap{flex:1; display:flex; align-items:center; gap:6px; overflow-x:auto; padding:4px 2px;}
+.dot{width:16px;height:16px;border-radius:50%;background:rgba(0,0,0,.12); flex:0 0 auto; border:2px solid rgba(0,0,0,.15); transition:all .3s;}
+.dot.done{background:var(--green); border-color:var(--green); box-shadow:0 0 8px var(--green);}
+.dot.current{background:var(--coral); border-color:var(--coral); transform:scale(1.3); box-shadow:0 0 8px var(--coral);}
+#starCount{display:flex; align-items:center; gap:4px; background:#fff; border:2px solid rgba(0,0,0,.1); border-radius:14px; padding:6px 12px; font-weight:800; font-family:var(--font-display); flex:0 0 auto;}
+#voiceBtn{
+  background:#fff; border:2px solid rgba(0,0,0,.1); color:var(--ink);
+  width:40px;height:40px;border-radius:12px;font-size:16px;flex:0 0 auto;
+}
+main{position:relative; z-index:1; max-width:720px; margin:0 auto; padding:18px 16px 60px;}
+.screen{display:none; animation:fadeUp .5s ease;}
+.screen.active{display:block;}
+@keyframes fadeUp{from{opacity:0; transform:translateY(16px);} to{opacity:1; transform:translateY(0);}}
+.card{
+  background:var(--cream); color:var(--ink); border-radius:var(--radius);
+  padding:20px; box-shadow:0 10px 30px rgba(0,0,0,.15);
+  margin-bottom:16px;
+}
+.eyebrow{
+  font-family:var(--font-display); font-weight:700; letter-spacing:.5px;
+  color:var(--track-dark); text-transform:uppercase; font-size:13px; margin-bottom:6px;
+}
+h2.title{font-size:26px; color:var(--ink); margin-bottom:8px;}
+p.lead{font-size:17px; line-height:1.5; margin:0 0 10px;}
+.tez-row{display:flex; align-items:flex-end; gap:12px; margin:14px 0;}
+.tez{width:74px;height:74px;flex:0 0 auto;}
+.bubble{
+  background:#fff; border:3px solid var(--race); border-radius:18px 18px 18px 4px;
+  padding:12px 16px; font-size:16px; line-height:1.4; font-weight:700; color:var(--ink);
+  position:relative; flex:1;
+}
+.mouth{transition:transform .15s ease;}
+.talking .mouth{animation:talk .3s infinite alternate;}
+@keyframes talk{from{transform:scaleY(1);} to{transform:scaleY(2.2);}}
+.blink{animation:blink 4s infinite;}
+@keyframes blink{0%,92%,100%{transform:scaleY(1);}96%{transform:scaleY(0.1);}}
+.btn{
+  font-family:var(--font-display); font-weight:700; font-size:17px;
+  border:none; border-radius:16px; padding:14px 22px; color:#fff;
+  background:var(--race); box-shadow:0 5px 0 var(--race-dark);
+  transition:transform .08s ease;
+}
+.btn:active{transform:translateY(4px); box-shadow:0 1px 0 var(--race-dark);}
+.btn.secondary{background:var(--navy2); box-shadow:0 5px 0 #100b08;}
+.btn.warn{background:var(--track-dark); box-shadow:0 5px 0 #a34e00;}
+.btn.big{width:100%; font-size:20px; padding:18px;}
+.btn-row{display:flex; gap:12px; flex-wrap:wrap; margin-top:14px;}
+.btn:disabled{opacity:.4; box-shadow:none; transform:none;}
+.choices{display:grid; gap:10px; margin-top:12px;}
+.choice{
+  text-align:left; background:#fff; border:3px solid #f0dcc4; border-radius:14px;
+  padding:14px 16px; font-weight:700; font-size:16px; color:var(--ink);
+}
+.choice:hover{border-color:var(--race);}
+.choice.correct{background:#e6f9ef; border-color:var(--green); color:#1c6b45;}
+.choice.wrong{background:#fdeceb; border-color:var(--coral); color:#a3372a;}
+.scene-wrap{background:#fff; border-radius:18px; padding:10px; margin:14px 0; text-align:center;}
+#hookSvg,#discoverSvg,#raceSvg{width:100%; max-width:360px; height:auto; display:block; margin:0 auto;}
+.hint{font-size:14px; color:#6b5a45; font-weight:700;}
+.item-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:10px; margin:14px 0;}
+.item{
+  background:#fff; border:3px solid #f0dcc4; border-radius:14px; padding:12px 6px;
+  text-align:center; font-weight:700;
+}
+.item .emoji{font-size:32px; display:block; margin-bottom:4px;}
+.item.correct{border-color:var(--green); background:#e6f9ef;}
+.item.wrong{border-color:var(--coral); background:#fdeceb;}
+.item.picked{outline:3px solid var(--race);}
+.item:disabled{opacity:.55; cursor:default;}
+.bin-row{display:flex; gap:10px; margin-top:8px; flex-wrap:wrap;}
+.bin{flex:1; min-width:130px; border-radius:14px; padding:12px 6px; text-align:center; font-family:var(--font-display); font-weight:700; font-size:13px; border:3px dashed var(--race); background:#fff;}
+.bin.rest{background:#fdeceb;}
+.bin.moving{background:#e6f9ef;}
+.bin.recti{background:#eafbe0;}
+.bin.circ{background:#e0f2ff;}
+.bin.rot{background:#fff6e0;}
+.bin.periodic{background:#f0e6ff;}
+.fill-track{background:#f0dcc4; border-radius:10px; height:16px; overflow:hidden; margin-top:8px;}
+.fill-bar{background:var(--green); height:100%; width:0%; transition:width .4s ease;}
+.checklist{display:grid; gap:10px; margin-top:10px;}
+.check-item{display:flex; gap:10px; align-items:flex-start; background:#fff; border:3px solid #f0dcc4; border-radius:14px; padding:12px 14px; font-weight:700;}
+.check-item input{width:22px;height:22px; margin-top:2px; flex:0 0 auto;}
+.certificate{background:linear-gradient(135deg,#fff8ec,#ffe0b2); border:4px solid var(--track-dark); border-radius:20px; padding:22px; text-align:center;}
+.certificate h3{font-size:24px; color:var(--track-dark);}
+.cert-name{font-size:20px; font-weight:800; color:var(--ink); margin:10px 0;}
+#confettiLayer{position:fixed; inset:0; pointer-events:none; z-index:200; overflow:hidden;}
+.confetto{position:absolute; top:-20px; width:10px; height:14px; opacity:.9; animation:fall linear forwards;}
+@keyframes fall{to{transform:translateY(110vh) rotate(540deg); opacity:0;}}
+footer.pagefooter{text-align:center; padding:10px; opacity:.6; font-size:13px;}
+.race-track{background:#fff; border-radius:14px; padding:14px 10px; margin:10px 0;}
+.race-lane{display:flex; align-items:center; gap:8px; margin:10px 0; position:relative; height:40px;}
+.race-lane .runner{font-size:26px; position:absolute; left:0; transition:left 2.2s cubic-bezier(.3,.7,.3,1);}
+.race-lane .finish{position:absolute; right:0; top:0; bottom:0; width:4px; background:repeating-linear-gradient(45deg,#000,#000 4px,#fff 4px,#fff 8px);}
+.race-time{font-weight:800; font-family:var(--font-display); text-align:center; margin-top:6px;}
+@media (max-width:420px){
+  h2.title{font-size:22px;}
+}
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important;}
+}
+</style>
+</head>
+<body>
+<div id="confettiLayer"></div>
+
+<div id="topbar">
+  <a id="backBtn" href="index.html" title="Back to all topics" aria-label="Back to topics">←</a>
+  <button id="homeBtn" title="Restart from beginning" aria-label="Restart">🏠</button>
+  <div id="progressWrap" role="list" aria-label="Lesson progress"></div>
+  <div id="starCount">⭐ <span id="starNum">0</span></div>
+  <button id="voiceBtn" title="Toggle Tez's voice" aria-label="Toggle voice">🔊</button>
+</div>
+
+<main>
+
+<!-- SCREEN 0: TITLE -->
+<section class="screen active" id="screen-title">
+  <div class="card" style="text-align:center;">
+    <svg viewBox="0 0 200 200" style="width:140px;margin:0 auto;display:block;" aria-hidden="true">
+      <circle cx="100" cy="110" r="72" fill="#ffb74d" stroke="#e65100" stroke-width="4"/>
+      <rect x="30" y="52" width="140" height="22" rx="10" fill="#ff5252"/>
+      <circle cx="75" cy="105" r="9" fill="#1f2937" class="blink"/>
+      <circle cx="125" cy="105" r="9" fill="#1f2937" class="blink"/>
+      <path d="M80,140 Q100,152 120,140" stroke="#1f2937" stroke-width="5" fill="none" stroke-linecap="round"/>
+      <path d="M18,118 L2,112 M18,128 L2,130" stroke="#e65100" stroke-width="4" stroke-linecap="round"/>
+    </svg>
+    <div class="eyebrow">Class 6 · Science</div>
+    <h1 class="title" style="font-size:28px;">Tez's Motion Marathon 🏃💨</h1>
+    <p class="lead">Meet Tez, a super speedy runner! Tez wants to know: what really makes something "moving" or "at rest"? Lace up and find out together!</p>
+    <button class="btn big" id="startBtn">Start the Adventure →</button>
+  </div>
+</section>
+
+<!-- SCREEN 1: HOOK -->
+<section class="screen" id="screen-hook">
+  <div class="card">
+    <div class="eyebrow">Stage 1 · A Mystery</div>
+    <h2 class="title">Are You Moving Right Now?</h2>
+    <p class="lead">Sruthi is sitting quietly on a bus, looking at her phone. The bus is speeding down the road.</p>
+    <div class="scene-wrap">
+      <svg viewBox="0 0 300 110" id="hookSvg" aria-hidden="true">
+        <rect x="0" y="85" width="300" height="10" fill="#c98a4b"/>
+        <rect id="hookBus" x="60" y="35" width="110" height="45" rx="8" fill="#ffb74d" stroke="#e65100" stroke-width="3"/>
+        <circle cx="80" cy="80" r="8" fill="#333"/>
+        <circle cx="150" cy="80" r="8" fill="#333"/>
+        <circle cx="105" cy="55" r="10" fill="#fff"/>
+        <text x="105" y="59" font-size="10" text-anchor="middle">🙂</text>
+        <g id="hookTrees"></g>
+      </svg>
+    </div>
+    <button class="btn" id="hookPlayBtn">▶ Watch the Bus Go</button>
+    <div id="hookQuestion" class="hidden">
+      <p class="lead" style="margin-top:16px;"><strong>Is Sruthi moving, or is she at rest?</strong></p>
+      <div class="choices" id="hookChoices"></div>
+    </div>
+    <div class="tez-row hidden" id="hookTezRow">
+      <div class="tez"><svg viewBox="0 0 200 200"><circle cx="100" cy="110" r="72" fill="#ffb74d" stroke="#e65100" stroke-width="4"/><rect x="30" y="52" width="140" height="22" rx="10" fill="#ff5252"/><circle cx="75" cy="105" r="9" fill="#1f2937"/><circle cx="125" cy="105" r="9" fill="#1f2937"/><path class="mouth" d="M80,140 Q100,152 120,140" stroke="#1f2937" stroke-width="5" fill="none" stroke-linecap="round"/></svg></div>
+      <div class="bubble" id="hookBubble">Trick question! It depends what you compare her to — that's called a <strong>reference point</strong>. Let's dig into rest and motion!</div>
+    </div>
+    <button class="btn big hidden" id="hookNextBtn">Discover Motion →</button>
+  </div>
+</section>
+
+<!-- SCREEN 2: DISCOVER -->
+<section class="screen" id="screen-discover">
+  <div class="card">
+    <div class="eyebrow">Stage 2 · Discover</div>
+    <h2 class="title">Rest, Motion &amp; Reference Points</h2>
+    <p class="lead">An object is in <strong>motion</strong> if its position keeps changing compared to something else. It's at <strong>rest</strong> if its position stays the same compared to something else. That "something else" is called a <strong>reference point</strong>.</p>
+    <div class="scene-wrap">
+      <svg viewBox="0 0 300 110" id="discoverSvg" aria-hidden="true">
+        <rect x="0" y="85" width="300" height="10" fill="#c98a4b"/>
+        <rect x="60" y="35" width="110" height="45" rx="8" fill="#ffb74d" stroke="#e65100" stroke-width="3"/>
+        <circle cx="105" cy="55" r="10" fill="#fff"/>
+        <text x="105" y="59" font-size="10" text-anchor="middle">🙂</text>
+        <text x="115" y="20" font-size="9" text-anchor="middle" font-weight="800">Compared to the BUS: at rest</text>
+        <text x="230" y="100" font-size="9" text-anchor="middle" font-weight="800">Compared to the GROUND: moving</text>
+      </svg>
+    </div>
+    <p class="lead">We also measure <strong>distance</strong> (how far something travels) and <strong>time</strong> (how long it takes) to describe motion. Speed tells us how quickly distance is covered.</p>
+    <div class="tez-row">
+      <div class="tez"><svg viewBox="0 0 200 200"><circle cx="100" cy="110" r="72" fill="#ffb74d" stroke="#e65100" stroke-width="4"/><rect x="30" y="52" width="140" height="22" rx="10" fill="#ff5252"/><circle cx="75" cy="105" r="9" fill="#1f2937"/><circle cx="125" cy="105" r="9" fill="#1f2937"/><path d="M80,128 Q100,116 120,128" stroke="#1f2937" stroke-width="5" fill="none" stroke-linecap="round"/></svg></div>
+      <div class="bubble">Motion isn't just moving in a straight line, either — things can move in circles, spin in place, or swing back and forth. Let's spot the reference point first!</div>
+    </div>
+    <button class="btn big" id="discoverNextBtn" style="margin-top:14px;">Try the Motion Detector →</button>
+  </div>
+</section>
+
+<!-- SCREEN 3: MOTION DETECTOR (reference point) -->
+<section class="screen" id="screen-reference">
+  <div class="card">
+    <div class="eyebrow">Stage 3 · Try It</div>
+    <h2 class="title">Motion Detector</h2>
+    <p class="lead">For each situation, decide: is the person or object <strong>at rest</strong> or <strong>moving</strong>, compared to the reference point given?</p>
+    <p class="hint" id="refStatus">Tap a card, then tap Rest or Moving.</p>
+    <div class="item-grid" id="refGrid"></div>
+    <div class="bin-row">
+      <button class="bin rest" id="binRest">🛑 At Rest</button>
+      <button class="bin moving" id="binMoving">🏃 Moving</button>
+    </div>
+    <div class="fill-track"><div class="fill-bar" id="refFill"></div></div>
+    <button class="btn big hidden" id="refNextBtn" style="margin-top:14px;">Continue →</button>
+  </div>
+</section>
+
+<!-- SCREEN 4: MOTION TYPE GAME -->
+<section class="screen" id="screen-classify">
+  <div class="card">
+    <div class="eyebrow">Stage 4 · Challenge</div>
+    <h2 class="title">What Type of Motion?</h2>
+    <p class="lead">Objects move in different ways: <strong>straight-line (rectilinear)</strong>, <strong>circular</strong> (along a circle), <strong>rotational</strong> (spinning about its own axis), or <strong>periodic</strong> (repeating the same movement again and again). Sort each example!</p>
+    <p class="hint" id="classifyStatus">Tap a card, then tap the matching motion type.</p>
+    <div class="item-grid" id="classifyGrid"></div>
+    <div class="bin-row">
+      <button class="bin recti" id="binRecti">➡️ Straight-line</button>
+      <button class="bin circ" id="binCirc">🔄 Circular</button>
+      <button class="bin rot" id="binRot">🌀 Rotational</button>
+      <button class="bin periodic" id="binPeriodic">⏱️ Periodic</button>
+    </div>
+    <div class="fill-track"><div class="fill-bar" id="classifyFill"></div></div>
+    <button class="btn big hidden" id="classifyNextBtn" style="margin-top:14px;">Continue →</button>
+  </div>
+</section>
+
+<!-- SCREEN 5: MINI RACE (apply) -->
+<section class="screen" id="screen-race">
+  <div class="card">
+    <div class="eyebrow">Stage 5 · Apply</div>
+    <h2 class="title">Mini Race!</h2>
+    <p class="lead">Three friends race the same distance. Watch closely, then figure out who was fastest.</p>
+    <div class="race-track" id="raceTrack">
+      <div class="race-lane"><span class="runner" id="runnerA" style="top:0;">🐢</span><div class="finish"></div></div>
+      <div class="race-lane"><span class="runner" id="runnerB" style="top:0;">🚶</span><div class="finish"></div></div>
+      <div class="race-lane"><span class="runner" id="runnerC" style="top:0;">🏃</span><div class="finish"></div></div>
+    </div>
+    <button class="btn" id="raceStartBtn">▶ Start the Race</button>
+    <div class="race-time hidden" id="raceTimes"></div>
+    <div id="raceQuizWrap" class="hidden" style="margin-top:14px;">
+      <p class="lead"><strong>All three covered the SAME distance. Who was moving fastest?</strong></p>
+      <div class="choices" id="raceChoices"></div>
+    </div>
+    <button class="btn big hidden" id="raceNextBtn" style="margin-top:14px;">Continue →</button>
+  </div>
+</section>
+
+<!-- SCREEN 6: REAL WORLD -->
+<section class="screen" id="screen-realworld">
+  <div class="card">
+    <div class="eyebrow">Stage 6 · Explore</div>
+    <h2 class="title">Motion Around You</h2>
+    <p class="lead">Motion is happening everywhere. Try each one and tick it off.</p>
+    <div class="checklist" id="realWorldList"></div>
+    <button class="btn big" id="realWorldNextBtn" style="margin-top:14px;" disabled>Continue →</button>
+  </div>
+</section>
+
+<!-- SCREEN 7: QUIZ -->
+<section class="screen" id="screen-quiz">
+  <div class="card">
+    <div class="eyebrow">Stage 7 · Show What You Know</div>
+    <h2 class="title">Question <span id="quizNum">1</span> of <span id="quizTotal">6</span></h2>
+    <div class="fill-track"><div class="fill-bar" id="quizFill"></div></div>
+    <div id="quizBody" style="margin-top:14px;"></div>
+  </div>
+</section>
+
+<!-- SCREEN 8: CELEBRATION -->
+<section class="screen" id="screen-end">
+  <div class="card" style="text-align:center;">
+    <div class="eyebrow">Mission Complete</div>
+    <h2 class="title">You Finished the Motion Marathon! 🎉</h2>
+    <p class="lead" id="endSummary">You explored rest, motion, reference points, and different types of motion all around you.</p>
+    <div class="certificate">
+      <h3>🏃 Certificate of Motion Mastery 💨</h3>
+      <div class="cert-name" id="certName">Awarded to a brilliant young scientist</div>
+      <p style="margin:0;">for understanding how reference points, distance, and time describe the motion of everything around us.</p>
+    </div>
+    <div class="tez-row">
+      <div class="tez"><svg viewBox="0 0 200 200"><circle cx="100" cy="110" r="72" fill="#ffb74d" stroke="#e65100" stroke-width="4"/><rect x="30" y="52" width="140" height="22" rx="10" fill="#ff5252"/><circle cx="75" cy="105" r="9" fill="#1f2937"/><circle cx="125" cy="105" r="9" fill="#1f2937"/><path d="M75,125 Q100,148 125,125" stroke="#1f2937" stroke-width="5" fill="none" stroke-linecap="round"/></svg></div>
+      <div class="bubble">Now try explaining to someone at home: <em>can something be at rest and in motion at the same time?</em> Teaching it helps you remember it!</div>
+    </div>
+    <div class="btn-row" style="justify-content:center;">
+      <button class="btn big" id="playAgainBtn">Play Again</button>
+      <a class="btn big secondary" href="index.html" style="text-decoration:none; display:flex; align-items:center; justify-content:center;">Back to Topics</a>
+    </div>
+  </div>
+</section>
+
+</main>
+<footer class="pagefooter">Science Adventure · Class 6 · Telangana State</footer>
+
+<script>
+(function(){
+"use strict";
+const $ = (sel,root=document)=>root.querySelector(sel);
+const $$ = (sel,root=document)=>Array.from(root.querySelectorAll(sel));
+const STAGES = ["title","hook","discover","reference","classify","race","realworld","quiz","end"];
+let currentStageIdx = 0;
+let voiceOn = true;
+
+const STORAGE_KEY = "motionProgress_v1";
+function loadProgress(){
+  try{ const raw = localStorage.getItem(STORAGE_KEY); if(raw) return JSON.parse(raw); }catch(e){}
+  return {stars:0, voiceOn:true};
+}
+function saveProgress(){ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(progress)); }catch(e){} }
+let progress = loadProgress();
+voiceOn = progress.voiceOn !== false;
+
+function renderDots(){
+  const wrap = $("#progressWrap");
+  wrap.innerHTML = "";
+  STAGES.forEach((s,i)=>{
+    if(s==="title") return;
+    const d = document.createElement("div");
+    d.className = "dot" + (i<currentStageIdx?" done":"") + (i===currentStageIdx?" current":"");
+    wrap.appendChild(d);
+  });
+  $("#starNum").textContent = progress.stars;
+}
+function goToStage(name){
+  const idx = STAGES.indexOf(name);
+  if(idx<0) return;
+  currentStageIdx = idx;
+  STAGES.forEach(s=>{
+    const el = $("#screen-"+s);
+    if(el) el.classList.toggle("active", s===name);
+  });
+  renderDots();
+  window.scrollTo({top:0, behavior:"smooth"});
+  if(name==="end"){
+    try{ localStorage.setItem("motion.html_completed","true"); }catch(e){}
+  }
+  document.dispatchEvent(new CustomEvent("stageentered:"+name));
+}
+function addStar(n=1){ progress.stars += n; saveProgress(); renderDots(); }
+
+function speak(text){
+  if(!voiceOn) return;
+  try{
+    if(!("speechSynthesis" in window)) return;
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.rate = 0.95; u.pitch = 1.05;
+    window.speechSynthesis.speak(u);
+  }catch(e){}
+}
+function tezSay(bubbleEl, text, mouthEl){
+  bubbleEl.textContent = text;
+  speak(text);
+  if(mouthEl){
+    mouthEl.parentElement.classList.add("talking");
+    setTimeout(()=>mouthEl.parentElement.classList.remove("talking"), Math.min(4000, text.length*55));
+  }
+}
+$("#voiceBtn").addEventListener("click", ()=>{
+  voiceOn = !voiceOn; progress.voiceOn = voiceOn; saveProgress();
+  $("#voiceBtn").textContent = voiceOn ? "🔊" : "🔈";
+  if(!voiceOn) try{window.speechSynthesis.cancel();}catch(e){}
+});
+$("#voiceBtn").textContent = voiceOn ? "🔊" : "🔈";
+
+function burstConfetti(count=60){
+  const colors = ["#ff5252","#ffb74d","#49C78A","#ffe0b2","#e65100"];
+  const layer = $("#confettiLayer");
+  for(let i=0;i<count;i++){
+    const c = document.createElement("div");
+    c.className = "confetto";
+    c.style.left = Math.random()*100+"%";
+    c.style.background = colors[Math.floor(Math.random()*colors.length)];
+    c.style.animationDuration = (2+Math.random()*1.5)+"s";
+    c.style.transform = `rotate(${Math.random()*360}deg)`;
+    layer.appendChild(c);
+    setTimeout(()=>c.remove(), 3600);
+  }
+}
+
+$("#homeBtn").addEventListener("click", ()=>{
+  if(confirm("Go back to the very start? Your stars stay saved.")){ goToStage("title"); }
+});
+
+/* TITLE */
+$("#startBtn").addEventListener("click", ()=> goToStage("hook"));
+
+/* HOOK: bus reference point */
+(function(){
+  let played = false;
+  function drawTrees(){
+    const g = $("#hookTrees");
+    g.innerHTML = "";
+    for(let i=0;i<4;i++){
+      const t = document.createElementNS("http://www.w3.org/2000/svg","text");
+      t.setAttribute("x", 200 + i*30);
+      t.setAttribute("y", 75);
+      t.setAttribute("font-size","20");
+      t.textContent = "🌳";
+      t.setAttribute("class","tree");
+      g.appendChild(t);
+    }
+  }
+  drawTrees();
+  $("#hookPlayBtn").addEventListener("click", ()=>{
+    if(played) return;
+    played = true;
+    const bus = $("#hookBus");
+    bus.style.transition = "x 1.8s linear";
+    requestAnimationFrame(()=>{ bus.setAttribute("x", 130); });
+    $$(".tree", $("#hookTrees")).forEach(t=>{
+      t.style.transition = "x 1.8s linear";
+      const x = parseFloat(t.getAttribute("x"));
+      requestAnimationFrame(()=>{ t.setAttribute("x", x - 220); });
+    });
+    setTimeout(()=>{
+      $("#hookQuestion").classList.remove("hidden");
+      renderHookChoices();
+    }, 1900);
+  });
+  function renderHookChoices(){
+    const wrap = $("#hookChoices");
+    if(wrap.children.length) return;
+    const opts = [
+      "She is definitely at rest — she isn't walking",
+      "She is definitely moving — the bus never stops",
+      "It depends on the reference point: at rest compared to the bus, moving compared to the ground",
+      "Motion and rest can never both be true"
+    ];
+    opts.forEach((opt,i)=>{
+      const b = document.createElement("button");
+      b.className = "choice";
+      b.textContent = opt;
+      b.addEventListener("click", ()=>{
+        $$(".choice", wrap).forEach(c=>c.disabled = true);
+        if(i===2){
+          b.classList.add("correct");
+        } else {
+          b.classList.add("wrong");
+          wrap.children[2].classList.add("correct");
+        }
+        $("#hookTezRow").classList.remove("hidden");
+        tezSay($("#hookBubble"), "Trick question! It depends what you compare her to — that's called a reference point. Let's dig into rest and motion!");
+        $("#hookNextBtn").classList.remove("hidden");
+        addStar(1);
+      });
+      wrap.appendChild(b);
+    });
+  }
+  $("#hookNextBtn").addEventListener("click", ()=> goToStage("discover"));
+})();
+
+/* DISCOVER */
+(function(){
+  $("#discoverNextBtn").addEventListener("click", ()=> goToStage("reference"));
+})();
+
+/* MOTION DETECTOR */
+(function(){
+  const items = [
+    {name:"A parked car, compared to the road", emoji:"🚗", type:"rest"},
+    {name:"A cricket ball flying through the air, compared to the ground", emoji:"🏏", type:"moving"},
+    {name:"A book on a table, compared to the table", emoji:"📖", type:"rest"},
+    {name:"A cyclist pedalling down the street, compared to a lamp post", emoji:"🚴", type:"moving"},
+    {name:"You, sitting still in a stationary train, compared to the train", emoji:"🚆", type:"rest"},
+    {name:"A kite in the sky, compared to a tree below it", emoji:"🪁", type:"moving"}
+  ];
+  let selected = null, correctCount = 0, done = 0;
+  const grid = $("#refGrid");
+  const status = $("#refStatus");
+  items.forEach((it,i)=>{
+    const d = document.createElement("button");
+    d.className = "item";
+    d.dataset.idx = i;
+    d.innerHTML = `<span class="emoji">${it.emoji}</span>${it.name}`;
+    d.addEventListener("click", ()=>{
+      if(d.classList.contains("correct")) return;
+      $$(".item", grid).forEach(x=>x.classList.remove("picked"));
+      selected = i;
+      d.classList.add("picked");
+    });
+    grid.appendChild(d);
+  });
+  function handleBin(type){
+    if(selected===null){ status.textContent = "Tap a card first, then choose Rest or Moving."; return; }
+    const idx = selected;
+    const el = $(`.item[data-idx="${idx}"]`, grid);
+    const it = items[idx];
+    if(el.classList.contains("correct")) return;
+    if(it.type === type){
+      el.classList.add("correct"); el.disabled = true; correctCount++;
+      status.textContent = `Right! Compared to that reference point, it's ${type==="rest"?"at rest":"moving"}.`;
+      addStar(0.5);
+    } else {
+      el.classList.add("wrong");
+      status.textContent = `Not quite — compared to that reference point, it's actually ${it.type==="rest"?"at rest":"moving"}.`;
+      setTimeout(()=>el.classList.remove("wrong"), 1400);
+    }
+    el.classList.remove("picked");
+    done++;
+    $("#refFill").style.width = Math.round((done/items.length)*100)+"%";
+    selected = null;
+    if(done>=items.length){
+      setTimeout(()=>{
+        status.textContent = `Detector complete! You got ${correctCount} of ${items.length} right on the first try.`;
+        $("#refNextBtn").classList.remove("hidden");
+      }, 300);
+    }
+  }
+  $("#binRest").addEventListener("click", ()=>handleBin("rest"));
+  $("#binMoving").addEventListener("click", ()=>handleBin("moving"));
+  $("#refNextBtn").addEventListener("click", ()=> goToStage("classify"));
+})();
+
+/* MOTION TYPE GAME */
+(function(){
+  const items = [
+    {name:"A car driving on a straight highway", emoji:"🚗", type:"recti"},
+    {name:"A runner sprinting down a straight track", emoji:"🏃", type:"recti"},
+    {name:"A giant wheel (Ferris wheel) turning", emoji:"🎡", type:"circ"},
+    {name:"Kids going round on a merry-go-round", emoji:"🎠", type:"circ"},
+    {name:"A ceiling fan spinning", emoji:"🌀", type:"rot"},
+    {name:"A spinning top", emoji:"🪀", type:"rot"},
+    {name:"A clock's pendulum swinging back and forth", emoji:"🕰️", type:"periodic"},
+    {name:"A child swinging on a playground swing", emoji:"🛝", type:"periodic"}
+  ];
+  let selected = null, correctCount = 0, done = 0;
+  const grid = $("#classifyGrid");
+  const status = $("#classifyStatus");
+  const labels = {recti:"straight-line", circ:"circular", rot:"rotational", periodic:"periodic"};
+  items.forEach((it,i)=>{
+    const d = document.createElement("button");
+    d.className = "item";
+    d.dataset.idx = i;
+    d.innerHTML = `<span class="emoji">${it.emoji}</span>${it.name}`;
+    d.addEventListener("click", ()=>{
+      if(d.classList.contains("correct")) return;
+      $$(".item", grid).forEach(x=>x.classList.remove("picked"));
+      selected = i;
+      d.classList.add("picked");
+    });
+    grid.appendChild(d);
+  });
+  function handleBin(type){
+    if(selected===null){ status.textContent = "Tap a card first, then choose its motion type."; return; }
+    const idx = selected;
+    const el = $(`.item[data-idx="${idx}"]`, grid);
+    const it = items[idx];
+    if(el.classList.contains("correct")) return;
+    if(it.type === type){
+      el.classList.add("correct"); el.disabled = true; correctCount++;
+      status.textContent = `Right! That's ${labels[type]} motion.`;
+      addStar(0.5);
+    } else {
+      el.classList.add("wrong");
+      status.textContent = `Not quite — that's actually ${labels[it.type]} motion.`;
+      setTimeout(()=>el.classList.remove("wrong"), 1400);
+    }
+    el.classList.remove("picked");
+    done++;
+    $("#classifyFill").style.width = Math.round((done/items.length)*100)+"%";
+    selected = null;
+    if(done>=items.length){
+      setTimeout(()=>{
+        status.textContent = `All classified! You got ${correctCount} of ${items.length} right on the first try.`;
+        $("#classifyNextBtn").classList.remove("hidden");
+      }, 300);
+    }
+  }
+  $("#binRecti").addEventListener("click", ()=>handleBin("recti"));
+  $("#binCirc").addEventListener("click", ()=>handleBin("circ"));
+  $("#binRot").addEventListener("click", ()=>handleBin("rot"));
+  $("#binPeriodic").addEventListener("click", ()=>handleBin("periodic"));
+  $("#classifyNextBtn").addEventListener("click", ()=> goToStage("race"));
+})();
+
+/* MINI RACE */
+(function(){
+  let raced = false;
+  const runners = [
+    {id:"runnerA", time:9, label:"Turtle"},
+    {id:"runnerB", time:5, label:"Walker"},
+    {id:"runnerC", time:2.5, label:"Runner"}
+  ];
+  $("#raceStartBtn").addEventListener("click", ()=>{
+    if(raced) return;
+    raced = true;
+    runners.forEach(r=>{
+      const el = $("#"+r.id);
+      el.style.left = "0%";
+      el.style.transition = `left ${r.time}s cubic-bezier(.2,.6,.3,1)`;
+      requestAnimationFrame(()=>{ el.style.left = "calc(100% - 30px)"; });
+    });
+    const maxTime = Math.max(...runners.map(r=>r.time));
+    setTimeout(()=>{
+      $("#raceTimes").classList.remove("hidden");
+      $("#raceTimes").innerHTML = runners.map(r=>`${r.label}: ${r.time}s`).join(" &nbsp;·&nbsp; ");
+      $("#raceQuizWrap").classList.remove("hidden");
+      renderRaceChoices();
+    }, maxTime*1000 + 300);
+  });
+  function renderRaceChoices(){
+    const wrap = $("#raceChoices");
+    if(wrap.children.length) return;
+    const opts = [
+      "The Turtle — it took the longest, so it must be fastest",
+      "The Runner — it covered the same distance in the least time",
+      "The Walker — it's always the fastest",
+      "They were all equally fast"
+    ];
+    opts.forEach((opt,i)=>{
+      const b = document.createElement("button");
+      b.className = "choice";
+      b.textContent = opt;
+      b.addEventListener("click", ()=>{
+        $$(".choice", wrap).forEach(c=>c.disabled = true);
+        if(i===1){
+          b.classList.add("correct");
+          addStar(1);
+        } else {
+          b.classList.add("wrong");
+          wrap.children[1].classList.add("correct");
+        }
+        $("#raceNextBtn").classList.remove("hidden");
+      });
+      wrap.appendChild(b);
+    });
+  }
+  $("#raceNextBtn").addEventListener("click", ()=> goToStage("realworld"));
+})();
+
+/* REAL WORLD */
+(function(){
+  const tasks = [
+    "Watch a ceiling fan or a spinning top and notice it turning about its own axis — that's rotational motion.",
+    "Sit still in a parked car or bus, then notice how trees outside seem to move backward once it starts — that's about reference points.",
+    "Find something at home that swings or moves back and forth repeatedly, like a pendulum clock or a swing.",
+    "Time how long it takes you to walk 20 steps, then try jogging the same 20 steps — compare the time."
+  ];
+  const list = $("#realWorldList");
+  tasks.forEach((t,i)=>{
+    const row = document.createElement("label");
+    row.className = "check-item";
+    row.innerHTML = `<input type="checkbox" id="rw${i}"><span>${t}</span>`;
+    list.appendChild(row);
+    row.querySelector("input").addEventListener("change", updateRW);
+  });
+  function updateRW(){
+    const checked = $$('input[type="checkbox"]', list).filter(c=>c.checked).length;
+    $("#realWorldNextBtn").disabled = checked < 2;
+    if(checked>=2 && !$("#realWorldNextBtn").dataset.starred){
+      addStar(1);
+      $("#realWorldNextBtn").dataset.starred = "1";
+    }
+  }
+  $("#realWorldNextBtn").addEventListener("click", ()=> { setTimeout(renderQuiz, 30); goToStage("quiz"); });
+})();
+
+/* QUIZ */
+let renderQuiz = function(){};
+(function(){
+  const questions = [
+    {q:"What do we call the object or point we compare something's position to, in order to say it's moving or at rest?", opts:["A speedometer","A reference point","A time interval","A force"], correct:1,
+      explain:"A reference point is what we compare an object's position to, to decide if it is moving or at rest."},
+    {q:"Sruthi is sitting still inside a moving bus. Compared to the bus, is she moving or at rest?", opts:["Moving","At rest","Neither moving nor at rest is possible","Always moving, no matter what"], correct:1,
+      explain:"Compared to the bus itself (her reference point), Sruthi's position isn't changing, so she is at rest relative to the bus — even though she is moving relative to the ground."},
+    {q:"A ceiling fan spinning around its own centre shows which type of motion?", opts:["Rectilinear motion","Circular motion","Rotational motion","No motion at all"], correct:2,
+      explain:"When an object turns about its own axis, like a fan or a spinning top, that's called rotational motion."},
+    {q:"True or False: A clock's pendulum, swinging the same way again and again, shows periodic motion.", opts:["True","False"], correct:0,
+      explain:"True — motion that repeats itself at regular intervals, like a swinging pendulum, is called periodic motion."},
+    {q:"Two cyclists ride the SAME distance. Cyclist A finishes in 5 minutes, Cyclist B finishes in 8 minutes. Who was moving faster?", opts:["Cyclist A, because less time for the same distance means greater speed","Cyclist B, because more time means more effort","They were both equally fast","There isn't enough information"], correct:0,
+      explain:"Covering the same distance in less time means greater speed, so Cyclist A was faster."},
+    {q:"A car moving along a straight, flat road shows which type of motion?", opts:["Rotational motion","Periodic motion","Rectilinear (straight-line) motion","Circular motion"], correct:2,
+      explain:"Motion along a straight line, like a car on a straight road, is called rectilinear motion."}
+  ];
+  let qIndex = 0;
+  const body = $("#quizBody");
+  $("#quizTotal").textContent = questions.length;
+  function renderQuestion(){
+    const q = questions[qIndex];
+    $("#quizNum").textContent = qIndex+1;
+    $("#quizFill").style.width = Math.round((qIndex/questions.length)*100)+"%";
+    body.innerHTML = "";
+    const qEl = document.createElement("p");
+    qEl.className = "lead"; qEl.style.fontWeight = "800";
+    qEl.textContent = q.q;
+    body.appendChild(qEl);
+    const choicesWrap = document.createElement("div");
+    choicesWrap.className = "choices";
+    let answered = false;
+    q.opts.forEach((opt,i)=>{
+      const b = document.createElement("button");
+      b.className = "choice"; b.textContent = opt;
+      b.addEventListener("click", ()=>{
+        if(answered) return;
+        if(i===q.correct){
+          answered = true;
+          b.classList.add("correct");
+          const fb = document.createElement("div");
+          fb.className = "bubble"; fb.style.marginTop = "10px";
+          fb.textContent = "✔ " + q.explain;
+          body.appendChild(fb);
+          speak(q.explain);
+          addStar(1);
+          const nextBtn = document.createElement("button");
+          nextBtn.className = "btn big"; nextBtn.style.marginTop = "14px";
+          nextBtn.textContent = (qIndex < questions.length-1) ? "Next question →" : "See my results →";
+          nextBtn.addEventListener("click", ()=>{
+            qIndex++;
+            if(qIndex < questions.length){ renderQuestion(); } else { finishQuiz(); }
+          });
+          body.appendChild(nextBtn);
+        } else {
+          b.classList.add("wrong"); b.disabled = true;
+        }
+      });
+      choicesWrap.appendChild(b);
+    });
+    body.appendChild(choicesWrap);
+  }
+  function finishQuiz(){
+    $("#quizFill").style.width = "100%";
+    $("#certName").textContent = "Awarded to a brilliant young scientist";
+    goToStage("end");
+    burstConfetti(70);
+  }
+  renderQuiz = function(){ qIndex = 0; renderQuestion(); };
+})();
+
+$("#playAgainBtn").addEventListener("click", ()=>{
+  location.reload();
+});
+
+renderDots();
+})();
+</script>
+</body>
+</html>
