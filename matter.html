@@ -1,0 +1,1232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Iggy's Matter Adventure - States of Matter</title>
+<style>
+  :root{
+    --sky-top:#8ec9ff;
+    --sky-bottom:#e8f7ff;
+    --sun:#ffd23f;
+    --sun-glow:#ffef9e;
+    --ocean-deep:#0b6ba8;
+    --ocean-light:#3aa8e0;
+    --cloud:#ffffff;
+    --cloud-shadow:#c9dcea;
+    --droplet:#2196d8;
+    --droplet-dark:#0e6fa8;
+    --leaf:#3fae5a;
+    --ground:#8a5a34;
+    --ground-light:#b98650;
+    --card:#ffffff;
+    --ink:#123049;
+    --ink-soft:#3d5972;
+    --accent:#ff6f59;
+    --accent2:#ffb703;
+    --good:#38b26a;
+    --bad:#ff6f59;
+    --radius:26px;
+    --font-display: 'Baloo 2', 'Fredoka', system-ui, sans-serif;
+    --font-body: 'Nunito', system-ui, sans-serif;
+  }
+  @font-face{
+    font-family:'Baloo 2';
+    src:local('Baloo 2');
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0;padding:0;height:100%;
+    font-family:var(--font-body);
+    color:var(--ink);
+    overflow-x:hidden;
+    background:linear-gradient(180deg,var(--sky-top) 0%, var(--sky-bottom) 55%, #d7f1dd 100%);
+  }
+  h1,h2,h3{font-family:var(--font-display), var(--font-body); margin:0;}
+  button{font-family:var(--font-body); cursor:pointer;}
+  #app{position:relative; min-height:100vh; padding-bottom:40px;}
+
+  /* ---------- Top bar ---------- */
+  #topbar{
+    position:sticky; top:0; z-index:50;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:10px 18px;
+    background:rgba(255,255,255,0.75);
+    backdrop-filter: blur(6px);
+    border-bottom:3px solid rgba(255,255,255,0.9);
+  }
+  #topbar .brand{
+    display:flex; align-items:center; gap:10px;
+    font-family:var(--font-display);
+    font-size:20px; color:var(--ocean-deep); font-weight:700;
+  }
+  #topbar .brand svg{width:34px;height:34px;}
+  #stats{display:flex; gap:14px; align-items:center;}
+  .stat-pill{
+    display:flex; align-items:center; gap:6px;
+    background:#fff; border-radius:999px; padding:6px 14px;
+    box-shadow:0 3px 0 rgba(0,0,0,0.08);
+    font-weight:800; font-size:15px; color:var(--ink);
+  }
+  .stat-pill svg{width:20px;height:20px;}
+
+  #progress-track{
+    height:10px; background:#dceefc; border-radius:999px; margin:0 18px; overflow:hidden;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.08);
+  }
+  #progress-fill{
+    height:100%; width:0%; border-radius:999px;
+    background:linear-gradient(90deg,var(--accent2),var(--accent));
+    transition:width .6s ease;
+  }
+
+  /* ---------- Scenes ---------- */
+  .scene{
+    display:none;
+    max-width:980px; margin:0 auto; padding:18px 18px 10px;
+    animation:fadeIn .5s ease;
+  }
+  .scene.active{display:block;}
+  @keyframes fadeIn{from{opacity:0; transform:translateY(14px);} to{opacity:1; transform:translateY(0);}}
+
+  .stage{
+    position:relative;
+    background:linear-gradient(180deg,#bfe4ff 0%, #eaf8ff 65%, #fff 100%);
+    border-radius:var(--radius);
+    border:5px solid #fff;
+    box-shadow:0 12px 0 rgba(20,80,120,0.12), 0 12px 30px rgba(20,80,120,0.15);
+    overflow:hidden;
+    height:min(58vh, 460px);
+    min-height:320px;
+  }
+
+  .card{
+    background:var(--card);
+    border-radius:22px;
+    padding:16px 20px;
+    box-shadow:0 8px 0 rgba(20,80,120,0.08);
+    margin-top:16px;
+  }
+
+  .speech-bubble{
+    background:#fff; border-radius:20px; padding:14px 18px;
+    box-shadow:0 6px 0 rgba(20,80,120,0.1);
+    position:relative; font-size:17px; line-height:1.4; font-weight:700;
+    color:var(--ink);
+  }
+  .speech-bubble.small{font-size:15px; font-weight:600; color:var(--ink-soft);}
+
+  .btn{
+    border:none; border-radius:999px; padding:12px 26px;
+    font-weight:800; font-size:16px; color:#fff;
+    background:linear-gradient(180deg,#4cc0f0,var(--ocean-deep));
+    box-shadow:0 5px 0 #084b76;
+    transition:transform .12s ease, box-shadow .12s ease;
+  }
+  .btn:active{transform:translateY(4px); box-shadow:0 1px 0 #084b76;}
+  .btn.secondary{background:linear-gradient(180deg,#ffe08a,var(--accent2)); box-shadow:0 5px 0 #b97c00; color:#4a3300;}
+  .btn.secondary:active{box-shadow:0 1px 0 #b97c00;}
+  .btn.accent{background:linear-gradient(180deg,#ff9587,var(--accent)); box-shadow:0 5px 0 #b4392c;}
+  .btn.accent:active{box-shadow:0 1px 0 #b4392c;}
+  .btn:disabled{opacity:.45; cursor:not-allowed;}
+  .btn svg{vertical-align:-4px; width:18px;height:18px; margin-right:4px;}
+
+  .nav-row{display:flex; justify-content:space-between; align-items:center; margin-top:18px; gap:10px; flex-wrap:wrap;}
+  .hint{font-size:14px; color:var(--ink-soft); font-weight:700;}
+
+  .badge{
+    display:inline-flex; align-items:center; gap:6px;
+    background:#fff7e0; color:#8a5a00; font-weight:800; font-size:13px;
+    padding:5px 12px; border-radius:999px; border:2px solid #ffe08a;
+  }
+
+  /* Sun */
+  .sun{
+    position:absolute; top:24px; right:34px; width:86px; height:86px;
+    border-radius:50%; background:radial-gradient(circle at 35% 35%, #fff6c9, var(--sun) 70%);
+    box-shadow:0 0 0 14px var(--sun-glow), 0 0 40px 10px rgba(255,210,63,.5);
+    cursor:pointer; animation:pulse 3s ease-in-out infinite;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .sun .face{font-size:26px;}
+  @keyframes pulse{0%,100%{transform:scale(1);}50%{transform:scale(1.06);}}
+  .sun.hot{box-shadow:0 0 0 20px var(--sun-glow), 0 0 60px 18px rgba(255,150,30,.7);}
+
+  .ocean{
+    position:absolute; left:0; right:0; bottom:0; height:38%;
+    background:linear-gradient(180deg, var(--ocean-light), var(--ocean-deep));
+  }
+  .wave{
+    position:absolute; left:0; width:200%; height:16px; top:-8px;
+    background:radial-gradient(circle, transparent 60%, var(--ocean-light) 62%) repeat-x;
+    background-size:40px 20px;
+    animation:waveMove 3.5s linear infinite;
+    opacity:.8;
+  }
+  @keyframes waveMove{from{transform:translateX(0);}to{transform:translateX(-40px);}}
+
+  .ground{
+    position:absolute; left:0; right:0; bottom:0; height:16%;
+    background:linear-gradient(180deg, var(--ground-light), var(--ground));
+  }
+
+  .mountain{position:absolute; bottom:14%;}
+
+  /* Droplet character */
+  .droplet{
+    position:absolute; width:46px; height:58px;
+    filter:drop-shadow(0 4px 4px rgba(0,0,0,0.2));
+  }
+  .droplet svg{width:100%; height:100%;}
+
+  .cloud-shape{
+    position:absolute; filter:drop-shadow(0 6px 6px rgba(0,0,0,.12));
+  }
+
+  .float{animation:floaty 3.2s ease-in-out infinite;}
+  @keyframes floaty{0%,100%{transform:translateY(0);}50%{transform:translateY(-10px);}}
+
+  .rain-layer{position:absolute; inset:0; pointer-events:none;}
+  .rain-drop{
+    position:absolute; width:4px; height:14px; border-radius:3px;
+    background:linear-gradient(#bfe6ff,#3aa8e0);
+    top:-20px;
+  }
+
+  /* Progress journey map (signature element) */
+  #journeymap{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-top:18px; padding:14px 10px; position:relative;
+  }
+  #journeymap .track{
+    position:absolute; left:36px; right:36px; top:50%; height:6px;
+    background:#dceefc; border-radius:6px; z-index:0;
+  }
+  #journeymap .track-fill{
+    position:absolute; left:36px; top:50%; height:6px; border-radius:6px;
+    background:linear-gradient(90deg,var(--accent2),var(--accent));
+    z-index:1; transition:width .6s ease; width:0%;
+  }
+  .jm-step{
+    position:relative; z-index:2; display:flex; flex-direction:column; align-items:center; gap:6px;
+    font-size:11px; font-weight:800; color:var(--ink-soft); width:70px; text-align:center;
+  }
+  .jm-dot{
+    width:36px; height:36px; border-radius:50%; background:#fff;
+    border:4px solid #dceefc; display:flex; align-items:center; justify-content:center;
+    font-size:16px; transition:all .3s ease;
+  }
+  .jm-step.done .jm-dot{border-color:var(--good); background:#e8fbf0;}
+  .jm-step.current .jm-dot{border-color:var(--accent); background:#fff0ee; transform:scale(1.15); box-shadow:0 0 0 6px rgba(255,111,89,.18);}
+
+  /* Choice cards */
+  .choices{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:14px; margin-top:16px;}
+  .choice-card{
+    background:#fff; border:4px solid #eaf3fb; border-radius:20px; padding:16px 10px;
+    text-align:center; font-weight:800; font-size:15px; color:var(--ink);
+    transition:transform .12s ease, border-color .12s ease;
+  }
+  .choice-card:hover{transform:translateY(-4px); border-color:#bfe0f7;}
+  .choice-card .emoji{font-size:38px; display:block; margin-bottom:8px;}
+  .choice-card.correct{border-color:var(--good); background:#e8fbf0;}
+  .choice-card.wrong{border-color:var(--bad); background:#fff0ee; animation:shake .4s;}
+  @keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-6px);}75%{transform:translateX(6px);}}
+
+  /* Sequence game */
+  #seq-pool, #seq-slots{display:flex; flex-wrap:wrap; gap:12px; margin-top:12px; min-height:110px;}
+  #seq-slots{
+    background:#eef7fe; border-radius:18px; padding:12px; border:3px dashed #bcdcf2;
+  }
+  .seq-card{
+    width:130px; background:#fff; border-radius:16px; padding:10px; text-align:center;
+    box-shadow:0 4px 0 rgba(20,80,120,0.1); cursor:grab; user-select:none; font-weight:800; font-size:13px;
+    border:3px solid #eaf3fb;
+  }
+  .seq-card .emoji{font-size:30px; display:block;}
+  .seq-slot-empty{
+    width:130px; height:110px; border-radius:16px; border:3px dashed #bcdcf2;
+    display:flex; align-items:center; justify-content:center; color:#9fc3dd; font-weight:800;
+  }
+  .seq-card.placed{opacity:.35; pointer-events:none;}
+
+  /* Cloud fill demo */
+  #cloud-wrap{display:flex; flex-direction:column; align-items:center; gap:14px;}
+  #cloud-meter{
+    width:80%; max-width:340px; height:22px; background:#eaf3fb; border-radius:999px; overflow:hidden;
+    border:3px solid #fff; box-shadow:0 3px 0 rgba(20,80,120,.1);
+  }
+  #cloud-meter-fill{height:100%; width:0%; background:linear-gradient(90deg,#9fd8ff,#3aa8e0); transition:width .3s ease;}
+
+  /* Mic wind meter */
+  #mic-wrap{display:flex; flex-direction:column; align-items:center; gap:10px; margin-top:10px;}
+  #mic-meter{width:80%; max-width:340px; height:18px; background:#eaf3fb; border-radius:999px; overflow:hidden; border:3px solid #fff;}
+  #mic-meter-fill{height:100%; width:0%; background:linear-gradient(90deg,#ffe08a,var(--accent2)); transition:width .1s linear;}
+
+  /* Confetti canvas */
+  #confetti-canvas{position:fixed; inset:0; pointer-events:none; z-index:999;}
+
+  /* toast */
+  #toast{
+    position:fixed; left:50%; bottom:26px; transform:translateX(-50%) translateY(20px);
+    background:var(--ink); color:#fff; padding:12px 22px; border-radius:999px;
+    font-weight:800; opacity:0; transition:all .3s ease; z-index:1000; pointer-events:none;
+    box-shadow:0 8px 20px rgba(0,0,0,.25);
+  }
+  #toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+
+  /* dots nav */
+  #scene-dots{display:flex; justify-content:center; gap:8px; margin-top:14px;}
+  #scene-dots .dot{width:9px;height:9px;border-radius:50%; background:#cfe4f3;}
+  #scene-dots .dot.active{background:var(--accent); width:22px; border-radius:6px;}
+
+  .two-col{display:grid; grid-template-columns:1.1fr .9fr; gap:16px;}
+  @media (max-width:720px){
+    .two-col{grid-template-columns:1fr;}
+    .stage{height:340px;}
+    #topbar .brand{font-size:16px;}
+  }
+
+  .mini-check{margin-top:14px;}
+
+  .real-list{list-style:none; margin:10px 0 0; padding:0; display:flex; flex-direction:column; gap:10px;}
+  .real-list li{
+    display:flex; align-items:center; gap:10px; background:#f3faff; border-radius:14px; padding:10px 14px;
+    font-weight:700; cursor:pointer; border:3px solid transparent;
+  }
+  .real-list li.done{border-color:var(--good); background:#e8fbf0; text-decoration:line-through; color:#3a8a5a;}
+  .real-list li .box{
+    width:22px; height:22px; border-radius:6px; border:3px solid #bcdcf2; flex:none;
+    display:flex; align-items:center; justify-content:center; font-size:14px; background:#fff;
+  }
+
+  .speak-btn{
+    background:#eef7fe; border:none; border-radius:999px; width:38px; height:38px;
+    display:inline-flex; align-items:center; justify-content:center; cursor:pointer; flex:none;
+  }
+  .speak-btn svg{width:18px;height:18px;}
+
+  .title-row{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
+
+  #final-badges{display:flex; gap:14px; flex-wrap:wrap; justify-content:center; margin-top:18px;}
+  .final-badge{
+    background:#fff; border-radius:18px; padding:14px 18px; text-align:center;
+    box-shadow:0 6px 0 rgba(20,80,120,.1); width:120px;
+  }
+  .final-badge .emoji{font-size:36px;}
+  .final-badge .label{font-size:12px; font-weight:800; margin-top:4px; color:var(--ink-soft);}
+
+  #star-fx{position:fixed; pointer-events:none; z-index:998;}
+
+  .emo{position:absolute; line-height:1; margin:-0.5em 0 0 -0.5em; user-select:none;}
+  .stage.short{height:auto; min-height:150px; padding:18px; display:flex; align-items:center; justify-content:center;}
+  .stage.canvasStage{height:auto; aspect-ratio:15/8; min-height:0;}
+  .pcanvas{width:100%; height:100%; display:block;}
+  .state-badge{position:absolute; top:10px; left:12px; background:#fff; border-radius:999px; padding:6px 16px; font-weight:800; font-size:18px; box-shadow:0 3px 0 rgba(0,0,0,.1);}
+  .temp-pill{background:#fff7e0; border:2px solid #ffe08a; border-radius:999px; padding:8px 16px; font-weight:800;}
+  .hot-grid{display:flex; flex-wrap:wrap; gap:14px; justify-content:center; align-items:center;}
+  .hot{background:#fff; border:4px solid #fff; border-radius:22px; padding:12px 16px; box-shadow:0 5px 0 rgba(20,80,120,.15); display:flex; flex-direction:column; align-items:center; font-weight:800; color:var(--ink); min-width:100px; transition:transform .12s ease;}
+  .hot:hover{transform:translateY(-4px);}
+  .hot-e{font-size:44px; line-height:1.1;}
+  .hot-l{font-size:14px; margin-top:4px;}
+  .hot.seen{border-color:var(--good); background:#e8fbf0;}
+  .sort-pool{display:flex; flex-wrap:wrap; gap:10px; margin-top:16px; padding:12px; background:#eef7fe; border-radius:18px; border:3px dashed #bcdcf2; min-height:60px;}
+  .sort-item{background:#fff; border:3px solid #eaf3fb; border-radius:14px; padding:10px 14px; font-weight:800; font-size:15px; color:var(--ink);}
+  .sort-item.sel{border-color:var(--accent); background:#fff0ee; transform:scale(1.05);}
+  .bucket .placed{margin-top:8px; font-size:24px; min-height:30px; line-height:1.3;}
+  .sep-view{text-align:center;}
+  .sep-name{font-weight:800; color:var(--ink-soft); margin-bottom:8px;}
+  .sep-row{font-size:clamp(34px,8vw,64px); line-height:1.3;}
+  .sep-arrow{font-size:.6em;}
+  a.btn{display:inline-block;}
+  .btn:disabled{box-shadow:0 5px 0 #6b7280; filter:grayscale(.5);}
+
+  :root{--sky-top:#a5dcff; --sky-bottom:#eaf8ff; --accent:#ff6f59; --accent2:#ffb703; --ocean-deep:#0b6ba8;}
+  html,body{background:linear-gradient(180deg,#a5dcff 0%, #eaf8ff 55%, #e4f6ff 100%);}
+  .stage{background:linear-gradient(180deg,#c9ecff 0%, #f4fbff 100%);}
+  .btn{background:linear-gradient(180deg,#6fd0f5,#0b6ba8); box-shadow:0 5px 0 #084b76;}
+  .btn:active{box-shadow:0 1px 0 #084b76;}
+  .btn.secondary{background:linear-gradient(180deg,#ffe08a,#ffb703); box-shadow:0 5px 0 #b97c00;}
+  .btn.accent{background:linear-gradient(180deg,#ff9587,#ff6f59); box-shadow:0 5px 0 #b4392c;}
+  #topbar .brand{color:#0b6ba8;}
+</style>
+</head>
+<body>
+<canvas id="confetti-canvas"></canvas>
+<div id="toast"></div>
+<div id="app">
+  <div id="topbar">
+    <div class="brand"><a href="index.html" title="All adventures" style="text-decoration:none">🏠</a> Iggy and the 3 States</div>
+    <div id="stats">
+      <div class="stat-pill"><span>⭐</span><span id="star-count">0</span></div>
+      <div class="stat-pill"><span>🏅</span><span id="badge-count">0</span></div>
+    </div>
+  </div>
+  <div id="progress-track"><div id="progress-fill"></div></div>
+  <div id="scenes"></div>
+  <div id="scene-dots"></div>
+</div>
+<script>
+const LESSON = {
+ "file": "matter.html",
+ "brand": "Iggy and the 3 States",
+ "topic": "states of matter",
+ "theme": {
+  "skyTop": "#a5dcff",
+  "skyBottom": "#eaf8ff",
+  "skyEnd": "#e4f6ff",
+  "accent": "#ff6f59",
+  "accent2": "#ffb703",
+  "btn1": "#6fd0f5",
+  "btn2": "#0b6ba8",
+  "btnShadow": "#084b76",
+  "stageTop": "#c9ecff",
+  "stageBottom": "#f4fbff"
+ },
+ "scenes": [
+  {
+   "type": "story",
+   "title": "🧊 Hi, I'm Iggy the Ice Cube!",
+   "stage": [
+    {
+     "e": "🧊",
+     "x": 50,
+     "y": 48,
+     "s": 96
+    },
+    {
+     "e": "🪨",
+     "x": 15,
+     "y": 30,
+     "s": 52
+    },
+    {
+     "e": "🥛",
+     "x": 84,
+     "y": 28,
+     "s": 52
+    },
+    {
+     "e": "🎈",
+     "x": 22,
+     "y": 72,
+     "s": 52
+    },
+    {
+     "e": "🪑",
+     "x": 80,
+     "y": 74,
+     "s": 48
+    }
+   ],
+   "text": "Everything around you - stones, milk, the air in a balloon, even me - is <b>matter<\/b>. Matter is anything that has <b>mass<\/b> (it is heavy) and takes up <b>space<\/b>. Matter comes in three main <b>states<\/b>: <b>solid, liquid and gas<\/b>. Let me show you how they are different!",
+   "check": {
+    "q": "Which of these is NOT matter?",
+    "opts": [
+     {
+      "t": "🔦 Light from a torch",
+      "c": true
+     },
+     {
+      "t": "🪨 A stone",
+      "c": false
+     },
+     {
+      "t": "🎈 Air inside a balloon",
+      "c": false
+     },
+     {
+      "t": "🥛 Milk",
+      "c": false
+     }
+    ],
+    "explain": "Light is a form of energy. It has no mass and does not take up space. Stones, air and milk all have mass and take up space."
+   }
+  },
+  {
+   "type": "reveal",
+   "title": "👀 Meet the 3 states",
+   "text": "Tap each card to find out what makes solids, liquids and gases different.",
+   "prompt": "Tap a card!",
+   "hot": [
+    {
+     "e": "🪨",
+     "l": "Solid",
+     "fact": "A <b>solid<\/b> has a fixed <b>shape<\/b> and a fixed <b>volume<\/b> (the space it takes up). A stone, a pencil and a wooden chair keep their shape wherever you put them."
+    },
+    {
+     "e": "🥛",
+     "l": "Liquid",
+     "fact": "A <b>liquid<\/b> has a fixed <b>volume<\/b> but <b>no fixed shape<\/b>. It flows and takes the shape of its container - milk in a glass looks different from milk in a jug, but the amount is the same."
+    },
+    {
+     "e": "🎈",
+     "l": "Gas",
+     "fact": "A <b>gas<\/b> has <b>no fixed shape<\/b> and <b>no fixed volume<\/b>. It spreads out to fill the whole container - the air in a balloon fills the whole balloon."
+    }
+   ]
+  },
+  {
+   "type": "sort",
+   "title": "🧺 Sort them out!",
+   "text": "Can you put each thing in the right state of matter?",
+   "prompt": "Tap an item, then tap the box where it belongs.",
+   "buckets": [
+    {
+     "id": "s",
+     "e": "🪨",
+     "t": "Solid"
+    },
+    {
+     "id": "l",
+     "e": "💧",
+     "t": "Liquid"
+    },
+    {
+     "id": "g",
+     "e": "🎈",
+     "t": "Gas"
+    }
+   ],
+   "hint": "Think: does it keep its own shape? Does it flow? Does it spread everywhere?",
+   "items": [
+    {
+     "e": "🪨",
+     "t": "Stone",
+     "b": "s",
+     "why": "a stone keeps its shape."
+    },
+    {
+     "e": "🪑",
+     "t": "Wooden chair",
+     "b": "s",
+     "why": "a chair keeps its shape and size."
+    },
+    {
+     "e": "📚",
+     "t": "Book",
+     "b": "s",
+     "why": "a book keeps its shape."
+    },
+    {
+     "e": "🥛",
+     "t": "Milk",
+     "b": "l",
+     "why": "milk flows and takes the shape of its glass."
+    },
+    {
+     "e": "🍯",
+     "t": "Honey",
+     "b": "l",
+     "why": "honey flows slowly - it is still a liquid."
+    },
+    {
+     "e": "🛢️",
+     "t": "Cooking oil",
+     "b": "l",
+     "why": "oil flows and takes the shape of its bottle."
+    },
+    {
+     "e": "🎈",
+     "t": "Air in a balloon",
+     "b": "g",
+     "why": "air spreads out to fill the whole balloon."
+    },
+    {
+     "e": "♨️",
+     "t": "Water vapour",
+     "b": "g",
+     "why": "water vapour is water as a gas."
+    },
+    {
+     "e": "🌬️",
+     "t": "Air around us",
+     "b": "g",
+     "why": "air has no fixed shape - it fills every room."
+    }
+   ]
+  },
+  {
+   "type": "particles",
+   "title": "🔬 Inside matter: tiny particles!",
+   "text": "All matter is made of tiny <b>particles<\/b> that we cannot see. The state depends on how the particles move - and <b>heat<\/b> changes that! Use the buttons to heat and cool water.",
+   "prompt": "Start by tapping 🔥 Heat. Watch the particles of ice!",
+   "melt": 0,
+   "boil": 100,
+   "temps": [
+    -10,
+    -5,
+    0,
+    20,
+    40,
+    60,
+    80,
+    100,
+    110
+   ],
+   "states": [
+    {
+     "e": "🧊",
+     "t": "Solid (ice)",
+     "color": "#7cc8f2",
+     "text": "🧊 <b>Solid:<\/b> the particles are packed tightly in fixed places. They only jiggle a little. That is why a solid keeps its shape."
+    },
+    {
+     "e": "💧",
+     "t": "Liquid (water)",
+     "color": "#2196d8",
+     "text": "💧 <b>Liquid:<\/b> the particles are close together but can slide past each other. That is why a liquid flows and takes the shape of its container."
+    },
+    {
+     "e": "♨️",
+     "t": "Gas (steam)",
+     "color": "#ff9a8a",
+     "text": "♨️ <b>Gas:<\/b> the particles are far apart and zoom around in every direction, filling the whole container."
+    }
+   ]
+  },
+  {
+   "type": "reveal",
+   "title": "🔄 States can change!",
+   "text": "When we <b>heat<\/b> or <b>cool<\/b> matter, it can change from one state to another. Tap each change.",
+   "prompt": "Tap each change to learn its name.",
+   "hot": [
+    {
+     "e": "🧊➡️💧",
+     "l": "Melting",
+     "fact": "<b>Melting:<\/b> a solid turns into a liquid when heated. Ice melts at <b>0°C<\/b>. Ghee and wax also melt when warmed."
+    },
+    {
+     "e": "💧➡️🧊",
+     "l": "Freezing",
+     "fact": "<b>Freezing:<\/b> a liquid turns into a solid when cooled. Water freezes into ice at <b>0°C<\/b> in a freezer."
+    },
+    {
+     "e": "💧➡️♨️",
+     "l": "Evaporation",
+     "fact": "<b>Evaporation / boiling:<\/b> a liquid turns into a gas when heated. Water boils at <b>100°C<\/b>. It also evaporates slowly at lower temperatures - that is how wet clothes dry."
+    },
+    {
+     "e": "♨️➡️💧",
+     "l": "Condensation",
+     "fact": "<b>Condensation:<\/b> a gas turns into a liquid when cooled. Water drops on the outside of a cold glass are water vapour from the air that cooled down."
+    }
+   ]
+  },
+  {
+   "type": "sort",
+   "title": "🕵️ Which change is it?",
+   "text": "Name the change of state in each everyday example.",
+   "prompt": "Tap an example, then tap the change that matches.",
+   "buckets": [
+    {
+     "id": "m",
+     "e": "🧊➡️💧",
+     "t": "Melting"
+    },
+    {
+     "id": "f",
+     "e": "💧➡️🧊",
+     "t": "Freezing"
+    },
+    {
+     "id": "e",
+     "e": "💧➡️♨️",
+     "t": "Evaporation"
+    },
+    {
+     "id": "c",
+     "e": "♨️➡️💧",
+     "t": "Condensation"
+    }
+   ],
+   "hint": "Which state did it start in, and which state did it end in?",
+   "items": [
+    {
+     "e": "🍦",
+     "t": "Ice cream turning runny in the sun",
+     "b": "m",
+     "why": "solid to liquid is melting."
+    },
+    {
+     "e": "🕯️",
+     "t": "Candle wax dripping near the flame",
+     "b": "m",
+     "why": "heat turns solid wax into liquid."
+    },
+    {
+     "e": "🥶",
+     "t": "Water becoming ice in the freezer",
+     "b": "f",
+     "why": "liquid to solid is freezing."
+    },
+    {
+     "e": "👕",
+     "t": "Wet clothes drying on a line",
+     "b": "e",
+     "why": "liquid water turns into water vapour."
+    },
+    {
+     "e": "🌧️",
+     "t": "A puddle disappearing in the sun",
+     "b": "e",
+     "why": "the puddle evaporates into the air."
+    },
+    {
+     "e": "🥤",
+     "t": "Water drops on a cold glass",
+     "b": "c",
+     "why": "water vapour cools and turns into liquid."
+    },
+    {
+     "e": "🪞",
+     "t": "Fog on a bathroom mirror",
+     "b": "c",
+     "why": "warm vapour cools on the mirror and becomes tiny drops."
+    }
+   ]
+  },
+  {
+   "type": "story",
+   "title": "👃 A smelly mystery",
+   "stage": [
+    {
+     "e": "🍳",
+     "x": 22,
+     "y": 60,
+     "s": 80
+    },
+    {
+     "e": "💨",
+     "x": 50,
+     "y": 42,
+     "s": 54
+    },
+    {
+     "e": "💨",
+     "x": 64,
+     "y": 58,
+     "s": 44
+    },
+    {
+     "e": "👃",
+     "x": 82,
+     "y": 55,
+     "s": 80
+    }
+   ],
+   "text": "You are in your room, but you can smell tasty food cooking in the kitchen! Gas particles move freely in all directions, so they <b>spread out<\/b> and mix with the air. This is called <b>diffusion<\/b>. Solids and liquids spread much more slowly.",
+   "check": {
+    "q": "Why can you smell food cooking from another room?",
+    "opts": [
+     {
+      "t": "Gas particles spread out and mix with the air",
+      "c": true
+     },
+     {
+      "t": "The food walks to your room",
+      "c": false
+     },
+     {
+      "t": "Solid particles carry the smell",
+      "c": false
+     }
+    ],
+    "explain": "Smell particles from the food travel as a gas. They move around and spread through the air until they reach your nose."
+   }
+  }
+ ],
+ "quizTitle": "Iggy's Final Challenge",
+ "quiz": [
+  {
+   "q": "Which state of matter has a fixed shape AND a fixed volume?",
+   "opts": [
+    {
+     "t": "Solid",
+     "c": true
+    },
+    {
+     "t": "Liquid",
+     "c": false
+    },
+    {
+     "t": "Gas",
+     "c": false
+    }
+   ],
+   "explain": "A solid keeps both its shape and its volume."
+  },
+  {
+   "q": "What happens to a liquid when you pour it from a glass into a bowl?",
+   "opts": [
+    {
+     "t": "It takes the shape of the bowl",
+     "c": true
+    },
+    {
+     "t": "It keeps the shape of the glass",
+     "c": false
+    },
+    {
+     "t": "It turns into a solid",
+     "c": false
+    }
+   ],
+   "explain": "A liquid has no fixed shape, so it takes the shape of its container. Its volume stays the same."
+  },
+  {
+   "q": "In which state are the particles farthest apart and moving fastest?",
+   "opts": [
+    {
+     "t": "Gas",
+     "c": true
+    },
+    {
+     "t": "Solid",
+     "c": false
+    },
+    {
+     "t": "Liquid",
+     "c": false
+    }
+   ],
+   "explain": "Gas particles are far apart and zoom around in every direction."
+  },
+  {
+   "q": "What is it called when a liquid cools and becomes a solid?",
+   "opts": [
+    {
+     "t": "Freezing",
+     "c": true
+    },
+    {
+     "t": "Melting",
+     "c": false
+    },
+    {
+     "t": "Condensation",
+     "c": false
+    }
+   ],
+   "explain": "Liquid to solid is freezing. Water freezes at 0°C."
+  },
+  {
+   "q": "Water drops form on the outside of a cold glass. This is...",
+   "opts": [
+    {
+     "t": "Condensation",
+     "c": true
+    },
+    {
+     "t": "Melting",
+     "c": false
+    },
+    {
+     "t": "Evaporation",
+     "c": false
+    }
+   ],
+   "explain": "Water vapour in the air cools against the glass and turns into liquid drops - condensation."
+  }
+ ],
+ "badges": [
+  {
+   "e": "🪨",
+   "l": "Solid Star"
+  },
+  {
+   "e": "💧",
+   "l": "Liquid Legend"
+  },
+  {
+   "e": "🎈",
+   "l": "Gas Genius"
+  },
+  {
+   "e": "🔄",
+   "l": "Change Champion"
+  }
+ ],
+ "endTitle": "You mastered the States of Matter!",
+ "endText": "Iggy is so proud of you! Matter is everywhere around you, and you now know how <b>solids, liquids and gases<\/b> are different - and how heating and cooling can change one into another.",
+ "teachPrompt": "Say out loud: \"Solids keep their shape because...\" - then explain to a family member why a liquid takes the shape of its container. Try using the word <b>particles<\/b>!",
+ "recap": "Matter is anything that has mass and takes up space. It has three states. Solids have a fixed shape and volume. Liquids have a fixed volume but take the shape of their container. Gases have no fixed shape or volume and fill their container. Heating and cooling can change the state: melting, freezing, evaporation and condensation."
+};
+</script>
+<script>
+'use strict';
+const L = LESSON;
+const synth = window.speechSynthesis;
+const $ = (s, r) => (r || document).querySelector(s);
+const $all = (s, r) => Array.from((r || document).querySelectorAll(s));
+function el(tag, cls, html){ const e = document.createElement(tag); if(cls) e.className = cls; if(html !== undefined) e.innerHTML = html; return e; }
+function plain(h){ const d = document.createElement('div'); d.innerHTML = h; return d.textContent; }
+function shuffle(a){ const b = a.slice(); for(let i=b.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=b[i]; b[i]=b[j]; b[j]=t; } return b; }
+
+let current = 0, stars = 0;
+const unlocked = {}, nextBtns = {}, onEnter = {};
+const QUIZ_IDX = L.scenes.length, END_IDX = L.scenes.length + 1, TOTAL = L.scenes.length + 2;
+
+function speak(text){
+  try{
+    if(!synth) return;
+    synth.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.rate = 0.98; u.pitch = 1.15;
+    const voices = synth.getVoices();
+    const kid = voices.find(v => /female|zira|samantha|google us/i.test(v.name));
+    if(kid) u.voice = kid;
+    synth.speak(u);
+  }catch(e){}
+}
+function toast(msg){
+  const t = $('#toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+function addStar(){
+  stars++; $('#star-count').textContent = stars;
+  const s = el('div', '', '⭐');
+  s.style.cssText = 'position:fixed;z-index:999;font-size:28px;transition:all .9s ease-out;top:40vh;left:' + (Math.random()*60+20) + 'vw';
+  document.body.appendChild(s);
+  requestAnimationFrame(() => { s.style.top = '20px'; s.style.left = 'calc(100vw - 80px)'; s.style.opacity = '0.2'; s.style.transform = 'scale(0.4)'; });
+  setTimeout(() => s.remove(), 950);
+}
+
+/* ---------- confetti ---------- */
+const cvs = $('#confetti-canvas'), cctx = cvs.getContext('2d');
+function resizeCanvas(){ cvs.width = window.innerWidth; cvs.height = window.innerHeight; }
+resizeCanvas(); window.addEventListener('resize', resizeCanvas);
+function confettiBurst(){
+  const colors = ['#ff6f59','#ffb703','#38b26a','#2196d8','#ffd23f'];
+  const pieces = [];
+  for(let i=0;i<90;i++) pieces.push({ x:cvs.width/2+(Math.random()-0.5)*200, y:cvs.height*0.3, vx:(Math.random()-0.5)*10, vy:Math.random()*-8-4, size:Math.random()*8+4, color:colors[Math.floor(Math.random()*colors.length)], rot:Math.random()*360, vr:(Math.random()-0.5)*20 });
+  let frame = 0;
+  (function anim(){
+    frame++;
+    cctx.clearRect(0, 0, cvs.width, cvs.height);
+    let alive = false;
+    pieces.forEach(p => {
+      p.vy += 0.28; p.x += p.vx; p.y += p.vy; p.rot += p.vr;
+      if(p.y < cvs.height + 20) alive = true;
+      cctx.save(); cctx.translate(p.x, p.y); cctx.rotate(p.rot*Math.PI/180);
+      cctx.fillStyle = p.color; cctx.fillRect(-p.size/2, -p.size/2, p.size, p.size*0.6); cctx.restore();
+    });
+    if(alive && frame < 220) requestAnimationFrame(anim); else cctx.clearRect(0, 0, cvs.width, cvs.height);
+  })();
+}
+
+/* ---------- navigation ---------- */
+function setLocked(i, locked, msg){
+  const n = nextBtns[i]; if(!n) return;
+  n.btn.disabled = locked; n.hint.textContent = locked ? (msg || '') : '';
+}
+function unlock(i){ if(unlocked[i]) return; unlocked[i] = true; setLocked(i, false); }
+function navRow(i, nextLabel, lockMsg){
+  const row = el('div', 'nav-row');
+  const back = el('button', 'btn', '← Back');
+  back.addEventListener('click', () => goScene(i-1));
+  if(i === 0) back.style.visibility = 'hidden';
+  const hint = el('span', 'hint', '');
+  const next = el('button', 'btn accent', nextLabel || 'Next →');
+  next.addEventListener('click', () => goScene(i+1));
+  row.appendChild(back); row.appendChild(hint); row.appendChild(next);
+  nextBtns[i] = { btn: next, hint: hint, lockMsg: lockMsg };
+  return row;
+}
+function updateProgress(){
+  $('#progress-fill').style.width = Math.round(current/(TOTAL-1)*100) + '%';
+  const w = $('#scene-dots'); w.innerHTML = '';
+  for(let i=0;i<TOTAL;i++) w.appendChild(el('div', 'dot' + (i===current ? ' active' : '')));
+}
+function goScene(n){
+  if(n < 0 || n >= TOTAL) return;
+  if(n > current && n <= QUIZ_IDX && current < L.scenes.length && !unlocked[current]) return;
+  $all('.scene').forEach(s => s.classList.remove('active'));
+  current = n;
+  $('#scene-' + n).classList.add('active');
+  updateProgress();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  if(onEnter[n]) onEnter[n]();
+}
+
+/* ---------- shared pieces ---------- */
+function card(cfg){
+  const c = el('div', 'card');
+  const row = el('div', 'title-row');
+  row.appendChild(el('h2', '', cfg.title));
+  const sp = el('button', 'speak-btn', '🔊'); sp.title = 'Read aloud';
+  sp.addEventListener('click', () => speak(plain(cfg.text)));
+  row.appendChild(sp); c.appendChild(row);
+  c.appendChild(el('p', 'speech-bubble', cfg.text));
+  return c;
+}
+function stageEmoji(items, extra){
+  const s = el('div', 'stage' + (extra ? ' ' + extra : ''));
+  (items || []).forEach((it, k) => {
+    const d = el('div', 'float emo', it.e);
+    d.style.left = it.x + '%'; d.style.top = it.y + '%';
+    d.style.fontSize = (it.s || 60) + 'px'; d.style.animationDelay = (k*0.4) + 's';
+    s.appendChild(d);
+  });
+  return s;
+}
+function addCheck(c, chk, i){
+  const box = el('div', 'mini-check');
+  box.appendChild(el('p', 'speech-bubble small', '💭 ' + chk.q));
+  const wrap = el('div', 'choices'); box.appendChild(wrap);
+  let missed = false;
+  shuffle(chk.opts).forEach(o => {
+    const d = el('div', 'choice-card', o.t);
+    d.addEventListener('click', () => {
+      if(unlocked[i]) return;
+      if(o.c){
+        d.classList.add('correct'); if(!missed) addStar(); toast('✅ Correct!');
+        box.appendChild(el('p', 'speech-bubble small', chk.explain)); unlock(i);
+      }else{
+        missed = true; d.classList.add('wrong'); d.style.pointerEvents = 'none'; toast('Not quite - try another one 🤔');
+      }
+    });
+    wrap.appendChild(d);
+  });
+  c.appendChild(box);
+}
+
+/* ---------- scene types ---------- */
+function buildStory(sec, cfg, i){
+  sec.appendChild(stageEmoji(cfg.stage));
+  const c = card(cfg); sec.appendChild(c);
+  if(cfg.check){ addCheck(c, cfg.check, i); nextBtns[i].lockMsg = '👆 Answer the question to continue'; setLocked(i, true, nextBtns[i].lockMsg); }
+  else unlock(i);
+}
+function buildReveal(sec, cfg, i){
+  const st = el('div', 'stage short'); const grid = el('div', 'hot-grid'); st.appendChild(grid); sec.appendChild(st);
+  const c = card(cfg); sec.appendChild(c);
+  const fact = el('p', 'speech-bubble small', cfg.prompt || 'Tap each one to learn more!'); c.appendChild(fact);
+  const count = el('p', 'hint', '0 / ' + cfg.hot.length + ' explored'); c.appendChild(count);
+  const seen = new Set();
+  cfg.hot.forEach((h, k) => {
+    const b = el('button', 'hot', '<span class="hot-e">' + h.e + '</span><span class="hot-l">' + h.l + '</span>');
+    b.addEventListener('click', () => {
+      fact.innerHTML = '<b>' + h.e + ' ' + h.l + '</b><br>' + h.fact;
+      speak(plain(h.fact));
+      if(!seen.has(k)){
+        seen.add(k); b.classList.add('seen'); addStar();
+        count.textContent = seen.size + ' / ' + cfg.hot.length + ' explored';
+        if(seen.size === cfg.hot.length){ unlock(i); toast('🎉 You explored them all!'); }
+      }
+    });
+    grid.appendChild(b);
+  });
+  setLocked(i, true, '👆 Tap every card to continue');
+}
+function buildSort(sec, cfg, i){
+  const c = card(cfg); sec.appendChild(c);
+  const fb = el('p', 'speech-bubble small', cfg.prompt || 'Tap an item, then tap the box where it belongs.'); c.appendChild(fb);
+  const bwrap = el('div', 'choices'); c.appendChild(bwrap);
+  const pool = el('div', 'sort-pool'); c.appendChild(pool);
+  let selected = null, remaining = cfg.items.length;
+  const bucketEls = {};
+  cfg.buckets.forEach(b => {
+    const d = el('div', 'choice-card bucket', '<span class="emoji">' + b.e + '</span>' + b.t + '<div class="placed"></div>');
+    bucketEls[b.id] = d;
+    d.addEventListener('click', () => {
+      if(!selected){ toast('👆 Tap an item first'); return; }
+      const it = selected.it, btn = selected.btn;
+      if(it.b === b.id){
+        d.querySelector('.placed').appendChild(el('span', '', it.e + ' '));
+        btn.remove(); selected = null; remaining--; addStar(); toast('✅ Yes!');
+        fb.innerHTML = '<b>' + it.e + ' ' + it.t + '</b>' + (it.why ? ' - ' + it.why : ' belongs here.');
+        if(remaining === 0){ unlock(i); toast('🎉 All sorted!'); }
+      }else{
+        d.classList.add('wrong'); setTimeout(() => d.classList.remove('wrong'), 450);
+        toast(cfg.hint || 'Not that box - think again 🤔');
+      }
+    });
+    bwrap.appendChild(d);
+  });
+  shuffle(cfg.items).forEach(it => {
+    const btn = el('button', 'sort-item', it.e + ' ' + it.t);
+    btn.addEventListener('click', () => {
+      $all('.sort-item', pool).forEach(x => x.classList.remove('sel'));
+      btn.classList.add('sel'); selected = { it: it, btn: btn };
+    });
+    pool.appendChild(btn);
+  });
+  setLocked(i, true, '👆 Sort every item to continue');
+}
+function buildSeparate(sec, cfg, i){
+  const st = el('div', 'stage short'); const view = el('div', 'sep-view'); st.appendChild(view); sec.appendChild(st);
+  const c = card(cfg); sec.appendChild(c);
+  const fb = el('p', 'speech-bubble small', ''); c.appendChild(fb);
+  const tools = el('div', 'choices'); c.appendChild(tools);
+  const more = el('button', 'btn secondary', 'Next mixture →'); more.style.display = 'none'; more.style.marginTop = '12px'; c.appendChild(more);
+  let idx = 0, done = false;
+  function show(){
+    const m = cfg.mix[idx];
+    view.innerHTML = '<div class="sep-name">' + (idx+1) + ' / ' + cfg.mix.length + ' - ' + m.name + '</div><div class="sep-row">' + m.before + '</div>';
+    fb.innerHTML = m.story; more.style.display = 'none'; done = false;
+    $all('.choice-card', tools).forEach(x => { x.classList.remove('correct', 'wrong'); x.style.pointerEvents = ''; });
+  }
+  cfg.tools.forEach(t => {
+    const d = el('div', 'choice-card', '<span class="emoji">' + t.e + '</span>' + t.t);
+    d.addEventListener('click', () => {
+      if(done) return;
+      const m = cfg.mix[idx];
+      if(t.id === m.ans){
+        done = true; d.classList.add('correct'); addStar(); toast('✅ ' + t.t + '!');
+        view.innerHTML = '<div class="sep-name">' + m.name + '</div><div class="sep-row">' + m.before + ' <span class="sep-arrow">➡️</span> ' + m.after + '</div>';
+        fb.innerHTML = m.explain; speak(plain(m.explain));
+        $all('.choice-card', tools).forEach(x => x.style.pointerEvents = 'none');
+        if(idx < cfg.mix.length - 1) more.style.display = ''; else { unlock(i); toast('🎉 Mixture master!'); }
+      }else{
+        d.classList.add('wrong'); setTimeout(() => d.classList.remove('wrong'), 450);
+        fb.innerHTML = '🤔 Not that tool. ' + m.hint; toast('Try another tool');
+      }
+    });
+    tools.appendChild(d);
+  });
+  more.addEventListener('click', () => { idx++; show(); });
+  show();
+  setLocked(i, true, '👆 Separate every mixture to continue');
+}
+function buildParticles(sec, cfg, i){
+  const st = el('div', 'stage canvasStage'); const cv = el('canvas'); cv.width = 600; cv.height = 320; cv.className = 'pcanvas';
+  st.appendChild(cv); const badge = el('div', 'state-badge', ''); st.appendChild(badge); sec.appendChild(st);
+  const c = card(cfg); sec.appendChild(c);
+  const info = el('p', 'speech-bubble small', cfg.prompt); c.appendChild(info);
+  const row = el('div', 'nav-row'); c.appendChild(row);
+  const cool = el('button', 'btn', '❄️ Cool'), heat = el('button', 'btn accent', '🔥 Heat');
+  const temp = el('span', 'temp-pill', ''); row.appendChild(cool); row.appendChild(temp); row.appendChild(heat);
+  const ctx = cv.getContext('2d'), W = 600, H = 320, temps = cfg.temps;
+  let level = 0; const seenStates = new Set(); const ps = [];
+  const cols = 6, rows = 6, sp = 34, x0 = (W - (cols-1)*sp)/2, y0 = H - 24 - (rows-1)*sp;
+  for(let r=0;r<rows;r++) for(let q=0;q<cols;q++) ps.push({ hx:x0+q*sp, hy:y0+r*sp, x:x0+q*sp, y:y0+r*sp, vx:0, vy:0 });
+  function stateOf(t){ return t <= cfg.melt ? 0 : (t < cfg.boil ? 1 : 2); }
+  function refresh(){
+    const s = stateOf(temps[level]), S = cfg.states[s];
+    badge.innerHTML = S.e + ' ' + S.t; temp.textContent = '🌡️ ' + temps[level] + '°C';
+    info.innerHTML = S.text; if(!seenStates.has(s)){ seenStates.add(s); addStar(); }
+    cool.disabled = level === 0; heat.disabled = level === temps.length - 1;
+    if(seenStates.size === 3) unlock(i);
+  }
+  heat.addEventListener('click', () => { if(level < temps.length-1){ level++; refresh(); } });
+  cool.addEventListener('click', () => { if(level > 0){ level--; refresh(); } });
+  function frame(){
+    if(current !== i) return;
+    const s = stateOf(temps[level]), col = cfg.states[s].color;
+    ctx.clearRect(0, 0, W, H);
+    ctx.strokeStyle = '#9fc3dd'; ctx.lineWidth = 4; ctx.strokeRect(4, 4, W-8, H-8);
+    ps.forEach(p => {
+      if(s === 0){
+        p.vx += (p.hx - p.x)*0.08; p.vy += (p.hy - p.y)*0.08; p.vx *= 0.8; p.vy *= 0.8;
+        p.x += p.vx + (Math.random()-0.5)*1.2; p.y += p.vy + (Math.random()-0.5)*1.2;
+      }else if(s === 1){
+        p.vx += (Math.random()-0.5)*0.7; p.vy += (Math.random()-0.5)*0.7 + 0.1;
+        if(p.y < H*0.38) p.vy += 0.3;
+        const sp2 = Math.hypot(p.vx, p.vy); if(sp2 > 2.2){ p.vx *= 2.2/sp2; p.vy *= 2.2/sp2; }
+        p.x += p.vx; p.y += p.vy;
+        if(p.x < 14 || p.x > W-14){ p.vx *= -1; p.x = Math.max(14, Math.min(W-14, p.x)); }
+        if(p.y > H-14){ p.vy *= -1; p.y = H-14; }
+      }else{
+        p.vx += (Math.random()-0.5)*0.5; p.vy += (Math.random()-0.5)*0.5;
+        let sp3 = Math.hypot(p.vx, p.vy) || 1;
+        const target = Math.max(2.6, Math.min(4.2, sp3)); p.vx *= target/sp3; p.vy *= target/sp3;
+        p.x += p.vx; p.y += p.vy;
+        if(p.x < 14 || p.x > W-14){ p.vx *= -1; p.x = Math.max(14, Math.min(W-14, p.x)); }
+        if(p.y < 14 || p.y > H-14){ p.vy *= -1; p.y = Math.max(14, Math.min(H-14, p.y)); }
+      }
+      ctx.beginPath(); ctx.arc(p.x, p.y, 10, 0, Math.PI*2); ctx.fillStyle = col; ctx.fill();
+      ctx.lineWidth = 2; ctx.strokeStyle = '#ffffff'; ctx.stroke();
+    });
+    requestAnimationFrame(frame);
+  }
+  onEnter[i] = () => { level = 0; ps.forEach(p => { p.x = p.hx; p.y = p.hy; p.vx = 0; p.vy = 0; }); refresh(); requestAnimationFrame(frame); };
+  setLocked(i, true, '👆 Heat it up and cool it down to see all 3 states');
+}
+
+/* ---------- quiz & ending ---------- */
+let qIdx = 0, qScore = 0;
+function buildQuizScene(){
+  const sec = el('section', 'scene'); sec.id = 'scene-' + QUIZ_IDX; $('#scenes').appendChild(sec);
+  const c = el('div', 'card');
+  c.appendChild(el('h2', '', '🎯 ' + L.quizTitle));
+  c.appendChild(el('p', 'speech-bubble small', '')).id = 'quizProgress';
+  const box = el('div', ''); box.id = 'quizBox'; c.appendChild(box); sec.appendChild(c);
+  const row = el('div', 'nav-row'); const back = el('button', 'btn', '← Back'); back.addEventListener('click', () => goScene(QUIZ_IDX-1));
+  row.appendChild(back); row.appendChild(el('span')); sec.appendChild(row);
+  onEnter[QUIZ_IDX] = () => { qIdx = 0; qScore = 0; renderQuiz(); };
+}
+function renderQuiz(){
+  const box = $('#quizBox'), n = L.quiz.length;
+  if(qIdx >= n){
+    const pass = qScore >= n - 1;
+    box.innerHTML = '<h3>Score: ' + qScore + ' / ' + n + '</h3>';
+    if(pass){
+      box.appendChild(el('p', 'speech-bubble', '🏆 Amazing! You really understand ' + L.topic + '!'));
+      const go = el('button', 'btn accent', '🎉 Claim my badges!'); go.style.marginTop = '12px'; go.addEventListener('click', finishAdventure); box.appendChild(go);
+    }else{
+      box.appendChild(el('p', 'speech-bubble', 'Nice try! Go back and review the lesson, then try the quiz again.'));
+      const retry = el('button', 'btn secondary', '🔁 Try the quiz again'); retry.style.marginTop = '12px'; retry.addEventListener('click', () => { qIdx = 0; qScore = 0; renderQuiz(); }); box.appendChild(retry);
+    }
+    return;
+  }
+  $('#quizProgress').textContent = 'Question ' + (qIdx+1) + ' of ' + n;
+  const item = L.quiz[qIdx];
+  box.innerHTML = ''; box.appendChild(el('p', 'speech-bubble', item.q));
+  const wrap = el('div', 'choices'); box.appendChild(wrap);
+  shuffle(item.opts).forEach(o => {
+    const d = el('div', 'choice-card', o.t);
+    d.addEventListener('click', () => {
+      $all('.choice-card', wrap).forEach(x => x.style.pointerEvents = 'none');
+      if(o.c){ d.classList.add('correct'); qScore++; addStar(); toast('✅ Correct!'); }
+      else{
+        d.classList.add('wrong');
+        $all('.choice-card', wrap).forEach(x => { const m = item.opts.find(op => op.t === x.textContent); if(m && m.c) x.classList.add('correct'); });
+        toast('Let us learn why 👇');
+      }
+      box.appendChild(el('p', 'speech-bubble small', item.explain)).style.marginTop = '10px';
+      const nb = el('button', 'btn accent', 'Next question →'); nb.style.marginTop = '10px';
+      nb.addEventListener('click', () => { qIdx++; renderQuiz(); }); box.appendChild(nb);
+    });
+    wrap.appendChild(d);
+  });
+}
+function buildEndScene(){
+  const sec = el('section', 'scene'); sec.id = 'scene-' + END_IDX; $('#scenes').appendChild(sec);
+  const c = el('div', 'card'); c.style.textAlign = 'center';
+  c.appendChild(el('h2', '', '🎉 ' + L.endTitle));
+  c.appendChild(el('p', 'speech-bubble', L.endText));
+  const bw = el('div', ''); bw.id = 'final-badges'; c.appendChild(bw);
+  const t = el('div', 'card'); t.style.textAlign = 'left';
+  t.innerHTML = '<h3>🗣️ Now YOU teach someone!</h3><p class="speech-bubble small">' + L.teachPrompt + '</p>';
+  const hear = el('button', 'btn secondary', '🔊 Hear the summary'); hear.addEventListener('click', () => speak(L.recap)); t.appendChild(hear);
+  c.appendChild(t);
+  const home = el('a', 'btn', '🏠 All adventures'); home.href = 'index.html'; home.style.cssText = 'display:inline-block;margin:16px 8px 0;text-decoration:none';
+  const again = el('button', 'btn secondary', '🔄 Restart'); again.style.marginTop = '16px'; again.addEventListener('click', () => goScene(0));
+  c.appendChild(home); c.appendChild(again); sec.appendChild(c);
+}
+function finishAdventure(){
+  try{ localStorage.setItem(L.file + '_completed', 'true'); }catch(e){}
+  const wrap = $('#final-badges'); wrap.innerHTML = '';
+  L.badges.concat([{ e: '⭐', l: stars + ' Stars earned' }]).forEach(b => wrap.appendChild(el('div', 'final-badge', '<div class="emoji">' + b.e + '</div><div class="label">' + b.l + '</div>')));
+  $('#badge-count').textContent = L.badges.length;
+  goScene(END_IDX); confettiBurst(); setTimeout(confettiBurst, 500);
+  speak('Congratulations! You finished the adventure and learned all about ' + L.topic + '!');
+}
+
+/* ---------- init ---------- */
+const builders = { story: buildStory, reveal: buildReveal, sort: buildSort, separate: buildSeparate, particles: buildParticles };
+L.scenes.forEach((cfg, i) => {
+  const sec = el('section', 'scene'); sec.id = 'scene-' + i; $('#scenes').appendChild(sec);
+  const body = el('div', ''); sec.appendChild(body);
+  const nav = navRow(i, i === L.scenes.length - 1 ? 'Take the quiz 🎯 →' : 'Next →');
+  builders[cfg.type](body, cfg, i);
+  sec.appendChild(nav);
+});
+buildQuizScene(); buildEndScene();
+$('#scene-0').classList.add('active'); updateProgress();
+
+</script>
+</body>
+</html>
