@@ -794,13 +794,13 @@ function buildEvapChoices(){
       if(o.correct){
         c.classList.add('correct');
         addStar();
-        toast('✨ Yes! That\\'s EVAPORATION!');
+        toast('✨ Yes! That\'s EVAPORATION!');
         speak("That's right! Heat from the sun turns liquid water into invisible water vapour, which rises into the sky. This is called evaporation.");
         $('#evapNext').style.display='inline-block';
       }else{
         c.classList.add('wrong');
         setTimeout(()=>c.classList.remove('wrong'),500);
-        toast('Nice try! Let\\'s think again 🤔');
+        toast('Nice try! Let\'s think again 🤔');
         speak("Good guess! But let's look again. The water didn't disappear, it became too small and light to see, and floated upward, just like steam from a hot cup of tea.");
       }
     });
@@ -866,7 +866,7 @@ precipCloud.addEventListener('click', ()=>{
   if(rained) return;
   rained = true;
   makeRain();
-  toast('🌧️ It\\'s raining!');
+  toast('🌧️ It\'s raining!');
   speak("The cloud let go! This falling water is called precipitation. It can fall as rain, snow, sleet, or hail.");
   setTimeout(()=>{
     $('#precipMini').style.display='block';
@@ -908,7 +908,7 @@ function buildPrecipChoices(){
       }else{
         c.classList.add('wrong');
         setTimeout(()=>c.classList.remove('wrong'),500);
-        toast('A rainbow is light bending in raindrops, but it doesn\\'t fall!');
+        toast('A rainbow is light bending in raindrops, but it doesn\'t fall!');
       }
       if(correctPicked>=2){
         $('#precipNext').style.display='inline-block';
@@ -1140,7 +1140,7 @@ function renderQuiz(){
         wrap.querySelectorAll('.choice-card').forEach(x=>{
           if(item.opts.find(op=>op.t===x.textContent && op.c)) x.classList.add('correct');
         });
-        toast('Let\\'s learn why 👇');
+        toast('Let\'s learn why 👇');
       }
       const exp = document.createElement('p');
       exp.className='speech-bubble small';
